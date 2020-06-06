@@ -129,7 +129,7 @@ BleTemperatureBase *BleTemperatureGrp::getTemperature(ble_gap_addr_t *peerAddres
 
 String BleTemperatureGrp::getDevicesJson()
 {
-  StaticJsonDocument<500> doc;
+  DynamicJsonDocument doc(2048);
   String retVal;
 
   JsonArray devices = doc.createNestedArray(BLE_JSON_DEVICE);
