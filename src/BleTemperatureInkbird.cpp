@@ -22,7 +22,7 @@
 #include "BleTemperatureInkbird.h"
 #include <ArduinoLog.h>
 
-#define INKBIRD_NUM_OF_TEMERATURES 6u
+#define INKBIRD_NUM_OF_TEMERATURES NUM_OF_TEMPERATURES_DEFAULT
 #define INBIRD_INACTIVEVALUE 0xFFF6u
 
 static const uint8_t credentials[] = {0x21, 0x07, 0x06, 0x05, 0x04, 0x03, 0x02, 0x01, 0xb8, 0x22, 0x00, 0x00, 0x00, 0x00, 0x00};
@@ -50,6 +50,10 @@ BleTemperatureInkbird::BleTemperatureInkbird(ble_gap_addr_t *peerAddress) : BleT
   bleCharLogin->begin();
   bleCharRealtimeData->begin();
   bleCharSettings->begin();
+
+  valueCount = 0u;
+
+  Bluefruit.Central.connect(peerAddress);
 }
 
 void BleTemperatureInkbird::update()
@@ -73,8 +77,6 @@ void BleTemperatureInkbird::connect(uint16_t bleConnHdl)
       name = buffer;
     }
   }
-
-  
 
   // Check for service
   Log.notice("Discovering Inkbird service ... ");
@@ -100,7 +102,7 @@ void BleTemperatureInkbird::connect(uint16_t bleConnHdl)
 
   // iBBQ login
   Log.notice("Writing iBBQ credentials ... ");
-  if(!bleCharLogin->write(credentials, sizeof(credentials)))
+  if (!bleCharLogin->write(credentials, sizeof(credentials)))
   {
     Log.notice("failed!" CR);
     Bluefruit.disconnect(bleConnHdl);
@@ -111,7 +113,7 @@ void BleTemperatureInkbird::connect(uint16_t bleConnHdl)
 
   // Enable realtime data
   Log.notice("Set inkbird unit to celsius: ");
-  if(!writeSettings(unitCelsius, sizeof(unitCelsius)))
+  if (!writeSettings(unitCelsius, sizeof(unitCelsius)))
   {
     Bluefruit.disconnect(bleConnHdl);
     return;
@@ -141,7 +143,7 @@ void BleTemperatureInkbird::connect(uint16_t bleConnHdl)
 
   // Enable realtime data
   Log.notice("Enable Inkbird realtime data: ");
-  if(!writeSettings(enableRealtimeData, sizeof(enableRealtimeData)))
+  if (!writeSettings(enableRealtimeData, sizeof(enableRealtimeData)))
   {
     Bluefruit.disconnect(bleConnHdl);
     return;
@@ -154,8 +156,8 @@ void BleTemperatureInkbird::connect(uint16_t bleConnHdl)
 
 uint16_t littleEndianInt(uint8_t *pData)
 {
-    uint16_t val = (pData[1] << 8) | pData[0];
-    return val;
+  uint16_t val = (pData[1] << 8) | pData[0];
+  return val;
 }
 
 void BleTemperatureInkbird::notify(BLEClientCharacteristic *chr, uint8_t *data, uint16_t len)
@@ -164,15 +166,29 @@ void BleTemperatureInkbird::notify(BLEClientCharacteristic *chr, uint8_t *data, 
 
   Log.notice("----------- Inkbird data -----------" CR);
 
-  uint8_t probeId = 0;
-  for (int i = 0; (i < len) && (probeId < valueCount); i += 2)
-  {
-      uint16_t rawVal = (data[i+1] << 8) | data[i];
+  u_int8_t numOfTemperatures = len / 2u;
 
-      currentValue[probeId] = (INBIRD_INACTIVEVALUE == rawVal) ? INACTIVEVALUE : (rawVal / 10);
-      
-      Log.notice("Probe %d has value %F" CR, probeId, currentValue[probeId]);
-      probeId++;
+  // get number of temperatures for initial connect
+  if ((numOfTemperatures <= NUM_OF_TEMPERATURES_DEFAULT) && (0u == valueCount))
+  {
+    valueCount = numOfTemperatures;
+    Log.notice("Number of temperatures: %d" CR, valueCount);
+
+    if (false == enabled)
+    {
+      Bluefruit.disconnect(bleConnHdl);
+    }
+  }
+
+  uint8_t probeId = 0;
+  for (uint8_t i = 0u; (i < len) && (probeId < valueCount); i += 2u)
+  {
+    uint16_t rawVal = (data[i + 1] << 8) | data[i];
+
+    currentValue[probeId] = (INBIRD_INACTIVEVALUE == rawVal) ? INACTIVEVALUE : (rawVal / 10);
+
+    Log.notice("Probe %d has value %F" CR, probeId, currentValue[probeId]);
+    probeId++;
   }
 
   Log.verbose("Raw data: ");
@@ -197,7 +213,7 @@ boolean BleTemperatureInkbird::writeSettings(const uint8_t *data, uint32_t lengt
 
   // Write settings
   Log.notice("Write Inkbird SETTINGS characteristic ... ");
-  if(!bleCharSettings->write(data, length))
+  if (!bleCharSettings->write(data, length))
   {
     Log.notice("failed!" CR);
     return false;
