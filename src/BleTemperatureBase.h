@@ -40,7 +40,7 @@ public:
   String getPeerAddressString();
   uint32_t getLastSeen() { return lastSeen; };
   int8_t getRssi() { return rssi; };
-  void advReceived() { lastSeen = 0u; };
+  void advReceived();
   void enable(boolean enable) { enabled = enable; };
   void virtual connect(uint16_t bleConnHdl){};
   void update();
@@ -57,7 +57,6 @@ protected:
   uint32_t lastSeen;
   boolean connected;
   boolean enabled;
-  boolean prevEnabled;
   ble_gap_addr_t peerAddress;
   String name;
   int8_t rssi;

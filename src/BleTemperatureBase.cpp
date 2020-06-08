@@ -36,7 +36,6 @@ BleTemperatureBase::BleTemperatureBase(ble_gap_addr_t *peerAddress, uint8_t numO
   this->lastSeen = 0u;
   this->rssi = 0;
   this->enabled = false;
-  this->prevEnabled = false;
 
   for (uint8_t index = 0u; index < this->valueCount; index++)
     this->currentValue[index] = INACTIVEVALUE;
@@ -82,25 +81,21 @@ void BleTemperatureBase::update()
     rssi = bleConnection->getRssi();
   }
 
-  /* Connect or disconnect when requested */
-  if ((false == prevEnabled) && (true == enabled))
+  /* Disconnect when requested and num of temperatures is known */
+  if ((bleConnection != NULL) && (false == enabled) && (valueCount > 0u))
   {
-    prevEnabled = true;
-
-    if (NULL == bleConnection)
-    {
-      Bluefruit.Central.connect(&this->peerAddress);
-    }
-  }
-  else if ((true == prevEnabled) && (false == enabled))
-  {
-    prevEnabled = false;
-
-    if (bleConnection != NULL)
-    {
-      bleConnection->disconnect();
-    }
+    bleConnection->disconnect();
   }
 
   lastSeen++;
 }
+
+void BleTemperatureBase::advReceived()
+{
+  lastSeen = 0u;
+
+  if((false == connected) && (true == enabled))
+  {
+    Bluefruit.Central.connect(&peerAddress);
+  }
+};
