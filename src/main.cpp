@@ -33,7 +33,7 @@ void setup()
   Serial.begin(115200);
   Log.begin(LOG_LEVEL_FATAL, &Serial, false);
 
-  Serial.println("@@Application");
+  Serial.printf("@@Application: %d\n", BUILD_TIMESTAMP);
 
   gBleTemperatureGrp.init();
 }

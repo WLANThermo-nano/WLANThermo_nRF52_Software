@@ -11,7 +11,7 @@ import time
 firmware_file = ".pio/build/" + env["PIOENV"] + "/firmware.hex"
 dfu_file = ".pio/build/" + env["PIOENV"] + "/app_dfu_package.zip"
 out_folder = "out/"
-fw_version = int(time.time()) #use utc unix time as version
+fw_version = env["UNIX_TIME"] #use utc unix time as version
 
 def install_pip(package):
     subprocess.call(["pip", "install", "--upgrade", package])
@@ -33,7 +33,7 @@ def extract_and_save_header(filename, header_filename, target_folder):
 
 def add_version_to_bin_header(header_filename, target_folder, version):
     with open(target_folder + header_filename, 'a') as f:
-        f.write("\nconst uint32_t " + str(header_filename).replace(".", "_") + "_version" + " = " + str(version) + ";")
+        f.write("\nconst uint32_t " + str(header_filename).replace(".", "_") + "_version" + " = " + str(version) + "u;")
 
 def after_buildprog(source, target, env):
     print("Generate DFU files")
