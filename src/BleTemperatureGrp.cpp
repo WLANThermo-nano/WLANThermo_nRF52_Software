@@ -37,10 +37,9 @@
 #define BLE_CENTRAL_DEVICE_COUNT 4u
 
 const BLEUuid filterBleUuids[] = {
-  BLEUuid(SERV_UUID_MEATER),
-  BLEUuid(SERV_UUID_INKBIRD),
-  BLEUuid(SERV_UUID_WLANTHERMO)
-};
+    BLEUuid(SERV_UUID_MEATER),
+    BLEUuid(SERV_UUID_INKBIRD),
+    BLEUuid(SERV_UUID_WLANTHERMO)};
 
 BleTemperatureBase *BleTemperatureGrp::temperatures[MAX_TEMPERATURES];
 
@@ -54,7 +53,7 @@ BleTemperatureGrp::BleTemperatureGrp()
 
 void BleTemperatureGrp::init()
 {
-  if(Bluefruit.begin(0, BLE_CENTRAL_DEVICE_COUNT) == false)
+  if (Bluefruit.begin(0, BLE_CENTRAL_DEVICE_COUNT) == false)
     Log.fatal("Bluefruit init failed!" CR);
 
   Bluefruit.setName("Wlanthermo");
@@ -65,7 +64,7 @@ void BleTemperatureGrp::init()
 
   Bluefruit.Scanner.setRxCallback(BleTemperatureGrp::scanCb);
   Bluefruit.Scanner.setInterval(160, 80); // in unit of 0.625 ms
-  Bluefruit.Scanner.filterUuid((BLEUuid*)filterBleUuids, sizeof(filterBleUuids)/sizeof(BLEUuid));
+  Bluefruit.Scanner.filterUuid((BLEUuid *)filterBleUuids, sizeof(filterBleUuids) / sizeof(BLEUuid));
   Bluefruit.Scanner.useActiveScan(true);
   Bluefruit.Scanner.start(0);
 }
@@ -154,6 +153,14 @@ String BleTemperatureGrp::getDevicesJson()
   return retVal;
 }
 
+void BleTemperatureGrp::enable(uint32_t enable)
+{
+  for (uint8_t i = 0u; i < this->count(); i++)
+  {
+    this->temperatures[i]->enable((enable & (1u << i)) > 0u);
+  }
+}
+
 uint8_t BleTemperatureGrp::count()
 {
   return this->addIndex;
@@ -175,26 +182,23 @@ void BleTemperatureGrp::scanCb(ble_gap_evt_adv_report_t *report)
       Log.notice("Meater %s received" CR, (true == report->type.scan_response) ? "scan response" : "advertising");
       BleTemperatureMeater *temp = new BleTemperatureMeater(&report->peer_addr);
       gBleTemperatureGrp.add(temp);
-      Bluefruit.Central.connect(report);
     }
     else if (Bluefruit.Scanner.checkReportForUuid(report, SERV_UUID_WLANTHERMO))
     {
       Log.notice("Wlanthermo %s received" CR, (true == report->type.scan_response) ? "scan response" : "advertising");
       BleTemperatureWlanthermo *temp = new BleTemperatureWlanthermo(&report->peer_addr);
       gBleTemperatureGrp.add(temp);
-      Bluefruit.Central.connect(report);
     }
     else if (Bluefruit.Scanner.checkReportForUuid(report, SERV_UUID_INKBIRD))
     {
       Log.notice("Inkbird %s received" CR, (true == report->type.scan_response) ? "scan response" : "advertising");
       BleTemperatureInkbird *temp = new BleTemperatureInkbird(&report->peer_addr);
       gBleTemperatureGrp.add(temp);
-      Bluefruit.Central.connect(report);
     }
   }
   else
   {
-    Bluefruit.Central.connect(report);
+    temp->advReceived();
   }
 
   Bluefruit.Scanner.resume();

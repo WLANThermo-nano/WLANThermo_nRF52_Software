@@ -31,16 +31,17 @@ public:
   void init();
   void virtual update();
   void add(BleTemperatureBase *temperature);
-  BleTemperatureBase* getTemperature(uint16_t conn_handle);
-  BleTemperatureBase* getTemperature(ble_gap_addr_t *peerAddress);
+  BleTemperatureBase *getTemperature(uint16_t conn_handle);
+  BleTemperatureBase *getTemperature(ble_gap_addr_t *peerAddress);
   String getDevicesJson();
-  BleTemperatureBase* operator[](int index);
+  void enable(uint32_t enable);
+  BleTemperatureBase *operator[](int index);
   uint8_t count();
-  static void notifyCb(BLEClientCharacteristic* chr, uint8_t* data, uint16_t len);
-  static void indicateCb(BLEClientCharacteristic* chr, uint8_t* data, uint16_t len);
+  static void notifyCb(BLEClientCharacteristic *chr, uint8_t *data, uint16_t len);
+  static void indicateCb(BLEClientCharacteristic *chr, uint8_t *data, uint16_t len);
 
 private:
-  static void scanCb(ble_gap_evt_adv_report_t* report);
+  static void scanCb(ble_gap_evt_adv_report_t *report);
   static void connectCb(uint16_t conn_handle);
   static void disconnectCb(uint16_t conn_handle, uint8_t reason);
 

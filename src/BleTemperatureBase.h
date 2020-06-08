@@ -23,6 +23,7 @@
 
 #define INACTIVEVALUE 999
 #define INVALID_BLE_CONN_HANDLE 0xFFFFu
+#define NUM_OF_TEMPERATURES_DEFAULT 8u
 
 class BleTemperatureBase
 {
@@ -39,11 +40,13 @@ public:
   String getPeerAddressString();
   uint32_t getLastSeen() { return lastSeen; };
   int8_t getRssi() { return rssi; };
+  void advReceived() { lastSeen = 0u; };
+  void enable(boolean enable) { enabled = enable; };
   void virtual connect(uint16_t bleConnHdl){};
+  void update();
   void virtual notify(BLEClientCharacteristic *chr, uint8_t *data, uint16_t len){};
   void virtual indicate(BLEClientCharacteristic *chr, uint8_t *data, uint16_t len){};
   void virtual disconnect(uint16_t conn_handle, uint8_t reason){};
-  void virtual update();
 
 protected:
   uint8_t localIndex;
@@ -53,6 +56,8 @@ protected:
   uint8_t valueCount;
   uint32_t lastSeen;
   boolean connected;
+  boolean enabled;
+  boolean prevEnabled;
   ble_gap_addr_t peerAddress;
   String name;
   int8_t rssi;

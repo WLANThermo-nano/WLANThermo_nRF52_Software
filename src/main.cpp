@@ -51,8 +51,15 @@ void loop()
 
     if(command.startsWith(SERIAL_CMD_GET_DEVICES))
     {
-      String json = gBleTemperatureGrp.getDevicesJson();
-      Serial.println(json);
+      int indexOfEqual = command.indexOf("=");
+
+      if((indexOfEqual > 0) && (command.length() - (indexOfEqual + 1)) > 0)
+      {
+        String enableString = command.substring(indexOfEqual + 1);
+        gBleTemperatureGrp.enable(enableString.toInt());
+        String json = gBleTemperatureGrp.getDevicesJson();
+        Serial.println(json);
+      }
     }
     else if(command.startsWith(SERIAL_CMD_GET_VERSION))
     {

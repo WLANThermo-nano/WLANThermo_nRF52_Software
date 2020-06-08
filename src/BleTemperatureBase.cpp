@@ -25,7 +25,7 @@
 
 uint8_t BleTemperatureBase::globalIndexTracker = 0u;
 
-BleTemperatureBase::BleTemperatureBase(ble_gap_addr_t *peerAddress, uint8_t numOfTemperatures = 1u)
+BleTemperatureBase::BleTemperatureBase(ble_gap_addr_t *peerAddress, uint8_t numOfTemperatures = NUM_OF_TEMPERATURES_DEFAULT)
 {
   this->globalIndex = this->globalIndexTracker++;
   this->bleConnHdl = INVALID_BLE_CONN_HANDLE;
@@ -35,9 +35,11 @@ BleTemperatureBase::BleTemperatureBase(ble_gap_addr_t *peerAddress, uint8_t numO
   this->currentValue = new float[numOfTemperatures]();
   this->lastSeen = 0u;
   this->rssi = 0;
+  this->enabled = false;
+  this->prevEnabled = false;
 
-  for(uint8_t index = 0u; index < this->valueCount; index++)
-      this->currentValue[index] = INACTIVEVALUE;
+  for (uint8_t index = 0u; index < this->valueCount; index++)
+    this->currentValue[index] = INACTIVEVALUE;
 }
 
 BleTemperatureBase::~BleTemperatureBase()
@@ -48,10 +50,10 @@ BleTemperatureBase::~BleTemperatureBase()
 float BleTemperatureBase::getValue(uint8_t index = 0u)
 {
   float value = INACTIVEVALUE;
-  
-  if((index < this->valueCount) && this->connected)
-    value = (float)((int)(this->currentValue[index]*10))/10; //limit float
-  
+
+  if ((index < this->valueCount) && this->connected)
+    value = (float)((int)(this->currentValue[index] * 10)) / 10; //limit float
+
   return value;
 }
 
@@ -74,9 +76,30 @@ void BleTemperatureBase::update()
 {
   BLEConnection *bleConnection = Bluefruit.Connection(this->bleConnHdl);
 
+  /* Update signal strength */
   if (bleConnection != NULL)
   {
     rssi = bleConnection->getRssi();
+  }
+
+  /* Connect or disconnect when requested */
+  if ((false == prevEnabled) && (true == enabled))
+  {
+    prevEnabled = true;
+
+    if (NULL == bleConnection)
+    {
+      Bluefruit.Central.connect(&this->peerAddress);
+    }
+  }
+  else if ((true == prevEnabled) && (false == enabled))
+  {
+    prevEnabled = false;
+
+    if (bleConnection != NULL)
+    {
+      bleConnection->disconnect();
+    }
   }
 
   lastSeen++;
