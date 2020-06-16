@@ -174,6 +174,7 @@ void BleTemperatureInkbird::notify(BLEClientCharacteristic *chr, uint8_t *data, 
     valueCount = numOfTemperatures;
     Log.notice("Number of temperatures: %d" CR, valueCount);
 
+    // disconnect if disabled
     if (false == enabled)
     {
       Bluefruit.disconnect(bleConnHdl);

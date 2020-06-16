@@ -41,6 +41,8 @@ BleTemperatureMeater::BleTemperatureMeater(ble_gap_addr_t *peerAddress) : BleTem
 
   bleServ->begin();
   bleChar->begin();
+
+  Bluefruit.Central.connect(peerAddress);
 }
 
 void BleTemperatureMeater::update()
@@ -62,6 +64,12 @@ void BleTemperatureMeater::connect(uint16_t bleConnHdl)
     {
       name = buffer;
     }
+  }
+
+  // disconnect if disabled
+  if (false == enabled)
+  {
+    Bluefruit.disconnect(bleConnHdl);
   }
 
   Log.notice("Discovering Meater service ... ");
