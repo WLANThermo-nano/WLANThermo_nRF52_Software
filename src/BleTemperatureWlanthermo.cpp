@@ -22,7 +22,7 @@
 #include "BleTemperatureWlanthermo.h"
 #include <ArduinoLog.h>
 
-#define WLANTHERMO_NUM_OF_TEMERATURES 1u
+#define WLANTHERMO_NUM_OF_TEMERATURES 2u
 
 BleTemperatureWlanthermo::BleTemperatureWlanthermo(ble_gap_addr_t *peerAddress) : BleTemperatureBase(peerAddress, WLANTHERMO_NUM_OF_TEMERATURES)
 {
@@ -95,10 +95,12 @@ void BleTemperatureWlanthermo::connect(uint16_t bleConnHdl)
 void BleTemperatureWlanthermo::notify(BLEClientCharacteristic *chr, uint8_t *data, uint16_t len)
 {
   currentValue[0] = ((float)(data[0] + (data[1] << 8))) / 10.0;
+  currentValue[1] = ((float)(data[2] + (data[3] << 8))) / 10.0;
   this->lastSeen = 0u;
 
   Log.notice("----------- Wlanthermo data -----------" CR);
-  Log.notice("Temperature: %F" CR, currentValue[0]);
+  Log.notice("Temperature 0: %F" CR, currentValue[0]);
+  Log.notice("Temperature 1: %F" CR, currentValue[1]);
 
   Log.verbose("Raw data: ");
 
