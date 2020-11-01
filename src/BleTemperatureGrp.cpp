@@ -57,6 +57,7 @@ void BleTemperatureGrp::init()
     Log.fatal("Bluefruit init failed!" CR);
 
   Bluefruit.setName("Wlanthermo");
+  Bluefruit.setTxPower(4);
 
   // Callbacks for Central
   Bluefruit.Central.setDisconnectCallback(BleTemperatureGrp::disconnectCb);
