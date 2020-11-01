@@ -32,6 +32,8 @@ BleTemperatureWlanthermo::BleTemperatureWlanthermo(ble_gap_addr_t *peerAddress) 
 
   bleServ->begin();
   bleChar->begin();
+
+  this->name = "WT Tiny";
 }
 
 void BleTemperatureWlanthermo::update()
