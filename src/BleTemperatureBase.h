@@ -25,10 +25,30 @@
 #define INVALID_BLE_CONN_HANDLE 0xFFFFu
 #define NUM_OF_TEMPERATURES_DEFAULT 8u
 
+union SplitTwoBytes {
+  uint16_t value;
+  struct ATTR_PACKED
+  {
+    uint8_t lowByte;
+    uint8_t highByte;
+  };
+};
+
+typedef struct ATTR_PACKED
+{
+  uint16_t manufacturer;
+  uint8_t beaconType;
+  uint8_t beaconLen;
+  uint8_t uuid128[16];
+  SplitTwoBytes major;
+  SplitTwoBytes minor;
+  int8_t rssi;
+} BeaconType;
+
 class BleTemperatureBase
 {
 public:
-  BleTemperatureBase(ble_gap_addr_t *peerAddress, uint8_t numOfTemperatures);
+  BleTemperatureBase(ble_gap_addr_t *peerAddress, uint8_t numOfTemperatures, boolean beaconOnly);
   ~BleTemperatureBase();
   float getValue(uint8_t index);
   uint8_t getValueCount() { return valueCount; };
@@ -40,13 +60,14 @@ public:
   String getPeerAddressString();
   uint32_t getLastSeen() { return lastSeen; };
   int8_t getRssi() { return rssi; };
-  void advReceived();
+  void advReceived(uint8_t *advData, uint8_t advDataLength);
   void enable(boolean enable) { enabled = enable; };
   void virtual connect(uint16_t bleConnHdl){};
-  void update();
+  virtual void update();
   void virtual notify(BLEClientCharacteristic *chr, uint8_t *data, uint16_t len){};
   void virtual indicate(BLEClientCharacteristic *chr, uint8_t *data, uint16_t len){};
   void virtual disconnect(uint16_t conn_handle, uint8_t reason){};
+  void virtual readBeacon(uint8_t *advData, uint8_t advDataLength){};
 
 protected:
   uint8_t localIndex;
@@ -57,6 +78,7 @@ protected:
   uint32_t lastSeen;
   boolean connected;
   boolean enabled;
+  boolean beaconOnly;
   ble_gap_addr_t peerAddress;
   String name;
   int8_t rssi;

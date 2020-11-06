@@ -31,7 +31,13 @@
 void setup()
 {
   Serial.begin(115200);
+
+#ifdef NRF_DONGLE
+  Log.begin(LOG_LEVEL_VERBOSE, &Serial, false);
+  while(!Serial);
+#else
   Log.begin(LOG_LEVEL_FATAL, &Serial, false);
+#endif
 
   Serial.printf("@@Application: %d\n", BUILD_TIMESTAMP);
 

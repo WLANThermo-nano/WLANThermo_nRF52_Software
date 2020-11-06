@@ -29,16 +29,7 @@ static const uint8_t credentials[] = {0x21, 0x07, 0x06, 0x05, 0x04, 0x03, 0x02, 
 static const uint8_t enableRealtimeData[] = {0x0B, 0x01, 0x00, 0x00, 0x00, 0x00};
 static const uint8_t unitCelsius[] = {0x02, 0x00, 0x00, 0x00, 0x00, 0x00};
 
-union SplitTwoBytes {
-  uint16_t value;
-  struct
-  {
-    uint8_t lowByte;
-    uint8_t highByte;
-  };
-};
-
-BleTemperatureInkbird::BleTemperatureInkbird(ble_gap_addr_t *peerAddress) : BleTemperatureBase(peerAddress, INKBIRD_NUM_OF_TEMERATURES)
+BleTemperatureInkbird::BleTemperatureInkbird(ble_gap_addr_t *peerAddress) : BleTemperatureBase(peerAddress, INKBIRD_NUM_OF_TEMERATURES, false)
 {
   bleServ = new BLEClientService(BLEUuid(SERV_UUID_INKBIRD));
   bleCharLogin = new BLEClientCharacteristic(BLEUuid(CHAR_UUID_INKBIRD_LOGIN));
@@ -54,11 +45,6 @@ BleTemperatureInkbird::BleTemperatureInkbird(ble_gap_addr_t *peerAddress) : BleT
   valueCount = 0u;
 
   Bluefruit.Central.connect(peerAddress);
-}
-
-void BleTemperatureInkbird::update()
-{
-  BleTemperatureBase::update();
 }
 
 void BleTemperatureInkbird::connect(uint16_t bleConnHdl)

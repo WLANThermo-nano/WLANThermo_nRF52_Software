@@ -24,7 +24,7 @@
 
 #define WLANTHERMO_NUM_OF_TEMERATURES 2u
 
-BleTemperatureWlanthermo::BleTemperatureWlanthermo(ble_gap_addr_t *peerAddress) : BleTemperatureBase(peerAddress, WLANTHERMO_NUM_OF_TEMERATURES)
+BleTemperatureWlanthermo::BleTemperatureWlanthermo(ble_gap_addr_t *peerAddress) : BleTemperatureBase(peerAddress, WLANTHERMO_NUM_OF_TEMERATURES, false)
 {
   bleServ = new BLEClientService(BLEUuid(SERV_UUID_WLANTHERMO));
   bleChar = new BLEClientCharacteristic(BLEUuid(CHAR_UUID_WLANTHERMO));
@@ -34,11 +34,6 @@ BleTemperatureWlanthermo::BleTemperatureWlanthermo(ble_gap_addr_t *peerAddress) 
   bleChar->begin();
 
   this->name = "WT Tiny";
-}
-
-void BleTemperatureWlanthermo::update()
-{
-  BleTemperatureBase::update();
 }
 
 void BleTemperatureWlanthermo::connect(uint16_t bleConnHdl)
@@ -110,6 +105,14 @@ void BleTemperatureWlanthermo::notify(BLEClientCharacteristic *chr, uint8_t *dat
     Log.verbose("%X ", data[i]);
 
   Log.verbose(CR);
+
+  BLEConnection *bleConnection = Bluefruit.Connection(chr->connHandle());
+
+  /* Update signal strength */
+  if (bleConnection != NULL)
+  {
+    Log.notice("RSSI: %i dB" CR, bleConnection->getRssi());
+  }
 }
 
 void BleTemperatureWlanthermo::disconnect(uint16_t conn_handle, uint8_t reason)

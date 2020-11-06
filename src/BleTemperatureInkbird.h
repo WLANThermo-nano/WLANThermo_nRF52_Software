@@ -38,7 +38,6 @@ public:
   void virtual connect(uint16_t bleConnHdl);
   void notify(BLEClientCharacteristic *chr, uint8_t *data, uint16_t len);
   void disconnect(uint16_t conn_handle, uint8_t reason);
-  void update();
 
 private:
   boolean writeSettings(const uint8_t *data, uint32_t length);
