@@ -24,16 +24,7 @@
 
 #define MEATER_NUM_OF_TEMERATURES 2u
 
-union SplitTwoBytes {
-  uint16_t value;
-  struct
-  {
-    uint8_t lowByte;
-    uint8_t highByte;
-  };
-};
-
-BleTemperatureMeater::BleTemperatureMeater(ble_gap_addr_t *peerAddress) : BleTemperatureBase(peerAddress, MEATER_NUM_OF_TEMERATURES)
+BleTemperatureMeater::BleTemperatureMeater(ble_gap_addr_t *peerAddress) : BleTemperatureBase(peerAddress, MEATER_NUM_OF_TEMERATURES, false)
 {
   bleServ = new BLEClientService(BLEUuid(SERV_UUID_MEATER));
   bleChar = new BLEClientCharacteristic(BLEUuid(CHAR_UUID_MEATER));
@@ -43,11 +34,6 @@ BleTemperatureMeater::BleTemperatureMeater(ble_gap_addr_t *peerAddress) : BleTem
   bleChar->begin();
 
   Bluefruit.Central.connect(peerAddress);
-}
-
-void BleTemperatureMeater::update()
-{
-  BleTemperatureBase::update();
 }
 
 void BleTemperatureMeater::connect(uint16_t bleConnHdl)

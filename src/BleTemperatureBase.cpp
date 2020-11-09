@@ -25,7 +25,7 @@
 
 uint8_t BleTemperatureBase::globalIndexTracker = 0u;
 
-BleTemperatureBase::BleTemperatureBase(ble_gap_addr_t *peerAddress, uint8_t numOfTemperatures = NUM_OF_TEMPERATURES_DEFAULT)
+BleTemperatureBase::BleTemperatureBase(ble_gap_addr_t *peerAddress, uint8_t numOfTemperatures = NUM_OF_TEMPERATURES_DEFAULT, boolean beaconOnly = false)
 {
   this->globalIndex = this->globalIndexTracker++;
   this->bleConnHdl = INVALID_BLE_CONN_HANDLE;
@@ -36,6 +36,7 @@ BleTemperatureBase::BleTemperatureBase(ble_gap_addr_t *peerAddress, uint8_t numO
   this->lastSeen = 0u;
   this->rssi = 0;
   this->enabled = false;
+  this->beaconOnly = beaconOnly;
 
   for (uint8_t index = 0u; index < this->valueCount; index++)
     this->currentValue[index] = INACTIVEVALUE;
@@ -73,28 +74,35 @@ String BleTemperatureBase::getPeerAddressString()
 
 void BleTemperatureBase::update()
 {
-  BLEConnection *bleConnection = Bluefruit.Connection(this->bleConnHdl);
-
-  /* Update signal strength */
-  if (bleConnection != NULL)
+  if(beaconOnly != true)
   {
-    rssi = bleConnection->getRssi();
-  }
+    BLEConnection *bleConnection = Bluefruit.Connection(this->bleConnHdl);
 
-  /* Disconnect when requested and num of temperatures is known */
-  if ((bleConnection != NULL) && (false == enabled) && (valueCount > 0u))
-  {
-    bleConnection->disconnect();
+    /* Update signal strength */
+    if (bleConnection != NULL)
+    {
+      rssi = bleConnection->getRssi();
+    }
+
+    /* Disconnect when requested and num of temperatures is known */
+    if ((bleConnection != NULL) && (false == enabled) && (valueCount > 0u))
+    {
+      bleConnection->disconnect();
+    }
   }
 
   lastSeen++;
 }
 
-void BleTemperatureBase::advReceived()
+void BleTemperatureBase::advReceived(uint8_t *advData, uint8_t advDataLength)
 {
   lastSeen = 0u;
-
-  if((false == connected) && (true == enabled))
+  
+  if(true == beaconOnly)
+  {
+    this->readBeacon(advData, advDataLength);
+  }
+  else if((false == connected) && (true == enabled))
   {
     Bluefruit.Central.connect(&peerAddress);
   }

@@ -22,6 +22,7 @@
 #include "BleTemperatureMeater.h"
 #include "BleTemperatureWlanthermo.h"
 #include "BleTemperatureInkbird.h"
+#include "BleTemperatureMeatStick.h"
 #include <ArduinoJson.h>
 #include <ArduinoLog.h>
 
@@ -65,7 +66,7 @@ void BleTemperatureGrp::init()
 
   Bluefruit.Scanner.setRxCallback(BleTemperatureGrp::scanCb);
   Bluefruit.Scanner.setInterval(160, 80); // in unit of 0.625 ms
-  Bluefruit.Scanner.filterUuid((BLEUuid *)filterBleUuids, sizeof(filterBleUuids) / sizeof(BLEUuid));
+  //Bluefruit.Scanner.filterUuid((BLEUuid *)filterBleUuids, sizeof(filterBleUuids) / sizeof(BLEUuid));
   Bluefruit.Scanner.useActiveScan(true);
   Bluefruit.Scanner.start(0);
 }
@@ -174,6 +175,7 @@ BleTemperatureBase *BleTemperatureGrp::operator[](int index)
 
 void BleTemperatureGrp::scanCb(ble_gap_evt_adv_report_t *report)
 {
+  BeaconType beacon;
   BleTemperatureBase *temp = gBleTemperatureGrp.getTemperature(&report->peer_addr);
 
   if (NULL == temp)
@@ -196,10 +198,19 @@ void BleTemperatureGrp::scanCb(ble_gap_evt_adv_report_t *report)
       BleTemperatureInkbird *temp = new BleTemperatureInkbird(&report->peer_addr);
       gBleTemperatureGrp.add(temp);
     }
+    else if (Bluefruit.Scanner.parseReportByType(report, 0xFFu, (uint8_t *)&beacon, sizeof(BeaconType)) == sizeof(BeaconType))
+    {
+      if(BleTemperatureMeatStick::hasMeatStickData(&beacon))
+      {
+        Log.notice("MeatStick %s received" CR, (true == report->type.scan_response) ? "scan response" : "advertising");
+        BleTemperatureMeatStick *temp = new BleTemperatureMeatStick(&report->peer_addr, &beacon);
+        gBleTemperatureGrp.add(temp);
+      }
+    }
   }
   else
   {
-    temp->advReceived();
+    temp->advReceived(report->data.p_data, report->data.len);
   }
 
   Bluefruit.Scanner.resume();
