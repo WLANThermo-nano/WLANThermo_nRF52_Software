@@ -55,19 +55,19 @@ void BleTemperatureMeatStick::readBeacon(uint8_t *advData, uint8_t advDataLength
         Serial.printBuffer((uint8_t*)&beacon, sizeof(BeaconType), '-');
         Serial.println();*/
 
-        if(memcmp(beacon.uuid128, CHAR_UUID_MEATSTICK_T0, sizeof(CHAR_UUID_MEATSTICK_T0)) == 0u)
+        if(0u == memcmp(beacon.uuid128, CHAR_UUID_MEATSTICK_T0, sizeof(CHAR_UUID_MEATSTICK_T0)))
         {
           currentValue[0] = (float(beacon.minor.highByte - 0x01u)) / 2.0;
           currentValue[1] = (float(beacon.minor.lowByte - 0x02u)) / 2.0;
           updatedValue = true;
         }
-        else if(memcmp(beacon.uuid128, CHAR_UUID_MEATSTICK_T1, sizeof(CHAR_UUID_MEATSTICK_T1)) == 0u)
+        else if(0u == memcmp(beacon.uuid128, CHAR_UUID_MEATSTICK_T1, sizeof(CHAR_UUID_MEATSTICK_T1)))
         {
           currentValue[0] = (float(beacon.minor.highByte - 0x01u)) / 2.0;
           currentValue[1] = (float(beacon.minor.lowByte - 0x03u + 0xFFu)) / 2.0;
           updatedValue = true;
         }
-        else if(memcmp(beacon.uuid128, CHAR_UUID_MEATSTICK_T2, sizeof(CHAR_UUID_MEATSTICK_T2)) == 0u)
+        else if(0u == memcmp(beacon.uuid128, CHAR_UUID_MEATSTICK_T2, sizeof(CHAR_UUID_MEATSTICK_T2)))
         {
           currentValue[0] = (float(beacon.minor.highByte - 0x01u)) / 2.0;
           currentValue[1] = (float(beacon.minor.lowByte - 0x04u + 0x1FEu)) / 2.0;
@@ -92,15 +92,15 @@ boolean BleTemperatureMeatStick::hasMeatStickData(BeaconType *beacon)
       (MEATSTICK_BEACON_TYPE == beacon->beaconType) &&
       (MEATSTICK_BEACON_LENGTH == beacon->beaconLen))
   {
-    if(memcmp(beacon->uuid128, CHAR_UUID_MEATSTICK_T0, sizeof(CHAR_UUID_MEATSTICK_T0)))
+    if(0u == memcmp(beacon->uuid128, CHAR_UUID_MEATSTICK_T0, sizeof(CHAR_UUID_MEATSTICK_T0)))
     {
       hasData = true;
     }
-    else if(memcmp(beacon->uuid128, CHAR_UUID_MEATSTICK_T1, sizeof(CHAR_UUID_MEATSTICK_T1)))
+    else if(0u == memcmp(beacon->uuid128, CHAR_UUID_MEATSTICK_T1, sizeof(CHAR_UUID_MEATSTICK_T1)))
     {
       hasData = true;
     }
-    else if(memcmp(beacon->uuid128, CHAR_UUID_MEATSTICK_T2, sizeof(CHAR_UUID_MEATSTICK_T2)))
+    else if(0u == memcmp(beacon->uuid128, CHAR_UUID_MEATSTICK_T2, sizeof(CHAR_UUID_MEATSTICK_T2)))
     {
       hasData = true;
     }
