@@ -47,6 +47,26 @@ typedef struct ATTR_PACKED
   int8_t rssi;
 } BeaconType;
 
+union SplitTwoBytes {
+  uint16_t value;
+  struct ATTR_PACKED
+  {
+    uint8_t lowByte;
+    uint8_t highByte;
+  };
+};
+
+typedef struct ATTR_PACKED
+{
+  uint16_t manufacturer;
+  uint8_t beaconType;
+  uint8_t beaconLen;
+  uint8_t uuid128[16];
+  SplitTwoBytes major;
+  SplitTwoBytes minor;
+  int8_t rssi;
+} BeaconType;
+
 class BleTemperatureBase
 {
 public:
