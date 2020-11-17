@@ -24,6 +24,8 @@
 #define INACTIVEVALUE 999
 #define INVALID_BLE_CONN_HANDLE 0xFFFFu
 #define NUM_OF_TEMPERATURES_DEFAULT 8u
+#define UUID16_SIZE 2u
+#define UUID128_SIZE 16u
 
 union SplitTwoBytes {
   uint16_t value;
