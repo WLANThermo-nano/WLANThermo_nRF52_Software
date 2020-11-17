@@ -23,7 +23,7 @@
 #include <ArduinoLog.h>
 
 #define INKBIRD_NUM_OF_TEMERATURES NUM_OF_TEMPERATURES_DEFAULT
-#define INBIRD_INACTIVEVALUE 0xFFF6u
+#define INKBIRD_INACTIVEVALUE 0xFFF6u
 
 static const uint8_t credentials[] = {0x21, 0x07, 0x06, 0x05, 0x04, 0x03, 0x02, 0x01, 0xb8, 0x22, 0x00, 0x00, 0x00, 0x00, 0x00};
 static const uint8_t enableRealtimeData[] = {0x0B, 0x01, 0x00, 0x00, 0x00, 0x00};
@@ -172,7 +172,7 @@ void BleTemperatureInkbird::notify(BLEClientCharacteristic *chr, uint8_t *data, 
   {
     uint16_t rawVal = (data[i + 1] << 8) | data[i];
 
-    currentValue[probeId] = (INBIRD_INACTIVEVALUE == rawVal) ? INACTIVEVALUE : (rawVal / 10);
+    currentValue[probeId] = (INKBIRD_INACTIVEVALUE == rawVal) ? INACTIVEVALUE : (rawVal / 10);
 
     Log.notice("Probe %d has value %F" CR, probeId, currentValue[probeId]);
     probeId++;
