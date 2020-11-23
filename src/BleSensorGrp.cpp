@@ -18,9 +18,10 @@
     
 ****************************************************/
 
-#include "BleTemperatureGrp.h"
+#include "BleSensorGrp.h"
 #include "BleTemperatureMeater.h"
 #include "BleTemperatureWlanthermo.h"
+#include "BleScaleWlanthermo.h"
 #include "BleTemperatureInkbird.h"
 #include "BleTemperatureMeatStick.h"
 #include <ArduinoJson.h>
@@ -31,28 +32,30 @@
 #define BLE_JSON_ADDRESS "a"
 #define BLE_JSON_STATUS "s"
 #define BLE_JSON_COUNT "c"
-#define BLE_JSON_TEMPERATURES "t"
 #define BLE_JSON_LAST_SEEN "ls"
 #define BLE_JSON_RSSI "r"
+#define BLE_JSON_SENSORS "t"
+#define BLE_JSON_SENSORS_VALUE "v"
+#define BLE_JSON_SENSORS_UNIT "u"
 
 #define BLE_CENTRAL_DEVICE_COUNT 4u
 
 const BLEUuid filterBleUuids[] = {
     BLEUuid(SERV_UUID_MEATER),
     BLEUuid(SERV_UUID_INKBIRD),
-    BLEUuid(SERV_UUID_WLANTHERMO)};
+    BLEUuid(SERV_UUID_TEMPERATURE_WLANTHERMO)};
 
-BleTemperatureBase *BleTemperatureGrp::temperatures[MAX_TEMPERATURES];
+BleSensorBase *BleSensorGrp::sensors[MAX_TEMPERATURES];
 
-BleTemperatureGrp::BleTemperatureGrp()
+BleSensorGrp::BleSensorGrp()
 {
   this->addIndex = 0u;
 
   for (uint8_t i = 0u; i < MAX_TEMPERATURES; i++)
-    temperatures[i] = NULL;
+    sensors[i] = NULL;
 }
 
-void BleTemperatureGrp::init()
+void BleSensorGrp::init()
 {
   if (Bluefruit.begin(0, BLE_CENTRAL_DEVICE_COUNT) == false)
     Log.fatal("Bluefruit init failed!" CR);
@@ -61,46 +64,46 @@ void BleTemperatureGrp::init()
   Bluefruit.setTxPower(4);
 
   // Callbacks for Central
-  Bluefruit.Central.setDisconnectCallback(BleTemperatureGrp::disconnectCb);
-  Bluefruit.Central.setConnectCallback(BleTemperatureGrp::connectCb);
+  Bluefruit.Central.setDisconnectCallback(BleSensorGrp::disconnectCb);
+  Bluefruit.Central.setConnectCallback(BleSensorGrp::connectCb);
 
-  Bluefruit.Scanner.setRxCallback(BleTemperatureGrp::scanCb);
+  Bluefruit.Scanner.setRxCallback(BleSensorGrp::scanCb);
   Bluefruit.Scanner.setInterval(160, 80); // in unit of 0.625 ms
   //Bluefruit.Scanner.filterUuid((BLEUuid *)filterBleUuids, sizeof(filterBleUuids) / sizeof(BLEUuid));
   Bluefruit.Scanner.useActiveScan(true);
   Bluefruit.Scanner.start(0);
 }
 
-void BleTemperatureGrp::add(BleTemperatureBase *temperature)
+void BleSensorGrp::add(BleSensorBase *sensor)
 {
-  temperatures[addIndex++] = temperature;
+  sensors[addIndex++] = sensor;
 }
 
-void BleTemperatureGrp::update()
+void BleSensorGrp::update()
 {
   if (Bluefruit.Scanner.isRunning() == false)
     Bluefruit.Scanner.start(0);
 
   for (uint8_t i = 0u; i < addIndex; i++)
   {
-    if (temperatures[i] != NULL)
+    if (sensors[i] != NULL)
     {
-      temperatures[i]->update();
+      sensors[i]->update();
     }
   }
 }
 
-BleTemperatureBase *BleTemperatureGrp::getTemperature(uint16_t conn_handle)
+BleSensorBase *BleSensorGrp::getSensor(uint16_t conn_handle)
 {
-  BleTemperatureBase *temp = NULL;
+  BleSensorBase *temp = NULL;
 
   for (uint8_t i = 0u; i < MAX_TEMPERATURES; i++)
   {
-    if (temperatures[i] != NULL)
+    if (sensors[i] != NULL)
     {
-      if (temperatures[i]->getBleConnHdl() == conn_handle)
+      if (sensors[i]->getBleConnHdl() == conn_handle)
       {
-        temp = temperatures[i];
+        temp = sensors[i];
         break;
       }
     }
@@ -109,17 +112,17 @@ BleTemperatureBase *BleTemperatureGrp::getTemperature(uint16_t conn_handle)
   return temp;
 }
 
-BleTemperatureBase *BleTemperatureGrp::getTemperature(ble_gap_addr_t *peerAddress)
+BleSensorBase *BleSensorGrp::getSensor(ble_gap_addr_t *peerAddress)
 {
-  BleTemperatureBase *temp = NULL;
+  BleSensorBase *temp = NULL;
 
   for (uint8_t i = 0u; i < MAX_TEMPERATURES; i++)
   {
-    if (temperatures[i] != NULL)
+    if (sensors[i] != NULL)
     {
-      if (0u == memcmp(peerAddress, temperatures[i]->getPeerAddress(), sizeof(ble_gap_addr_t)))
+      if (0u == memcmp(peerAddress, sensors[i]->getPeerAddress(), sizeof(ble_gap_addr_t)))
       {
-        temp = temperatures[i];
+        temp = sensors[i];
         break;
       }
     }
@@ -128,25 +131,31 @@ BleTemperatureBase *BleTemperatureGrp::getTemperature(ble_gap_addr_t *peerAddres
   return temp;
 }
 
-String BleTemperatureGrp::getDevicesJson()
+String BleSensorGrp::getDevicesJson()
 {
   DynamicJsonDocument doc(2048);
   String retVal;
 
   JsonArray devices = doc.createNestedArray(BLE_JSON_DEVICE);
-  for (uint8_t i = 0u; i < this->count(); i++)
+  for (uint8_t deviceIndex = 0u; deviceIndex < this->count(); deviceIndex++)
   {
     JsonObject object = devices.createNestedObject();
-    object[BLE_JSON_NAME] = this->temperatures[i]->getName();
-    object[BLE_JSON_ADDRESS] = this->temperatures[i]->getPeerAddressString();
-    object[BLE_JSON_STATUS] = (uint8_t)this->temperatures[i]->isConnected();
-    object[BLE_JSON_COUNT] = this->temperatures[i]->getValueCount();
-    object[BLE_JSON_LAST_SEEN] = this->temperatures[i]->getLastSeen();
-    object[BLE_JSON_RSSI] = this->temperatures[i]->getRssi();
-    JsonArray temperaturesArray = object.createNestedArray(BLE_JSON_TEMPERATURES);
-    for (uint8_t temps = 0u; temps < this->temperatures[i]->getValueCount(); temps++)
+    object[BLE_JSON_NAME] = this->sensors[deviceIndex]->getName();
+    object[BLE_JSON_ADDRESS] = this->sensors[deviceIndex]->getPeerAddressString();
+    object[BLE_JSON_STATUS] = (uint8_t)this->sensors[deviceIndex]->isConnected();
+    object[BLE_JSON_COUNT] = this->sensors[deviceIndex]->getValueCount();
+    object[BLE_JSON_LAST_SEEN] = this->sensors[deviceIndex]->getLastSeen();
+    object[BLE_JSON_RSSI] = this->sensors[deviceIndex]->getRssi();
+    JsonArray sensorsArray = object.createNestedArray(BLE_JSON_SENSORS);
+    for (uint8_t sensorIndex = 0u; sensorIndex < this->sensors[deviceIndex]->getValueCount(); sensorIndex++)
     {
-      temperaturesArray.add(this->temperatures[i]->getValue(temps));
+      JsonObject sensorObject = sensorsArray.createNestedObject();
+      sensorObject[BLE_JSON_SENSORS_VALUE] = this->sensors[deviceIndex]->getValue(sensorIndex);
+      String unit =  this->sensors[deviceIndex]->getUnit();
+      if(unit.length() > 0u)
+      {
+        sensorObject[BLE_JSON_SENSORS_UNIT] = unit;
+      }
     }
   }
 
@@ -155,28 +164,28 @@ String BleTemperatureGrp::getDevicesJson()
   return retVal;
 }
 
-void BleTemperatureGrp::enable(uint32_t enable)
+void BleSensorGrp::enable(uint32_t enable)
 {
   for (uint8_t i = 0u; i < this->count(); i++)
   {
-    this->temperatures[i]->enable((enable & (1u << i)) > 0u);
+    this->sensors[i]->enable((enable & (1u << i)) > 0u);
   }
 }
 
-uint8_t BleTemperatureGrp::count()
+uint8_t BleSensorGrp::count()
 {
   return this->addIndex;
 }
 
-BleTemperatureBase *BleTemperatureGrp::operator[](int index)
+BleSensorBase *BleSensorGrp::operator[](int index)
 {
-  return (((uint16_t)index) < MAX_TEMPERATURES) ? temperatures[index] : NULL;
+  return (((uint16_t)index) < MAX_TEMPERATURES) ? sensors[index] : NULL;
 }
 
-void BleTemperatureGrp::scanCb(ble_gap_evt_adv_report_t *report)
+void BleSensorGrp::scanCb(ble_gap_evt_adv_report_t *report)
 {
   BeaconType beacon;
-  BleTemperatureBase *temp = gBleTemperatureGrp.getTemperature(&report->peer_addr);
+  BleSensorBase *temp = gBleSensorGrp.getSensor(&report->peer_addr);
 
   if (NULL == temp)
   {
@@ -184,19 +193,25 @@ void BleTemperatureGrp::scanCb(ble_gap_evt_adv_report_t *report)
     {
       Log.notice("Meater %s received" CR, (true == report->type.scan_response) ? "scan response" : "advertising");
       BleTemperatureMeater *temp = new BleTemperatureMeater(&report->peer_addr);
-      gBleTemperatureGrp.add(temp);
+      gBleSensorGrp.add(temp);
     }
-    else if (Bluefruit.Scanner.checkReportForUuid(report, SERV_UUID_WLANTHERMO))
+    else if (Bluefruit.Scanner.checkReportForUuid(report, SERV_UUID_TEMPERATURE_WLANTHERMO))
     {
       Log.notice("Wlanthermo %s received" CR, (true == report->type.scan_response) ? "scan response" : "advertising");
       BleTemperatureWlanthermo *temp = new BleTemperatureWlanthermo(&report->peer_addr);
-      gBleTemperatureGrp.add(temp);
+      gBleSensorGrp.add(temp);
+    }
+    else if (Bluefruit.Scanner.checkReportForUuid(report, SERV_UUID_SCALE_WLANTHERMO))
+    {
+      Log.notice("Wlanthermo %s received" CR, (true == report->type.scan_response) ? "scan response" : "advertising");
+      BleScaleWlanthermo *temp = new BleScaleWlanthermo(&report->peer_addr);
+      gBleSensorGrp.add(temp);
     }
     else if (Bluefruit.Scanner.checkReportForUuid(report, SERV_UUID_INKBIRD))
     {
       Log.notice("Inkbird %s received" CR, (true == report->type.scan_response) ? "scan response" : "advertising");
       BleTemperatureInkbird *temp = new BleTemperatureInkbird(&report->peer_addr);
-      gBleTemperatureGrp.add(temp);
+      gBleSensorGrp.add(temp);
     }
     else if (Bluefruit.Scanner.parseReportByType(report, 0xFFu, (uint8_t *)&beacon, sizeof(BeaconType)) == sizeof(BeaconType))
     {
@@ -204,7 +219,7 @@ void BleTemperatureGrp::scanCb(ble_gap_evt_adv_report_t *report)
       {
         Log.notice("MeatStick %s received" CR, (true == report->type.scan_response) ? "scan response" : "advertising");
         BleTemperatureMeatStick *temp = new BleTemperatureMeatStick(&report->peer_addr, &beacon);
-        gBleTemperatureGrp.add(temp);
+        gBleSensorGrp.add(temp);
       }
     }
   }
@@ -216,7 +231,7 @@ void BleTemperatureGrp::scanCb(ble_gap_evt_adv_report_t *report)
   Bluefruit.Scanner.resume();
 }
 
-void BleTemperatureGrp::connectCb(uint16_t conn_handle)
+void BleSensorGrp::connectCb(uint16_t conn_handle)
 {
   Log.notice("Connected" CR);
 
@@ -225,7 +240,7 @@ void BleTemperatureGrp::connectCb(uint16_t conn_handle)
   if (bleConnection != NULL)
   {
     ble_gap_addr_t peerAddress = bleConnection->getPeerAddr();
-    BleTemperatureBase *temp = gBleTemperatureGrp.getTemperature(&peerAddress);
+    BleSensorBase *temp = gBleSensorGrp.getSensor(&peerAddress);
 
     if (temp != NULL)
     {
@@ -235,11 +250,11 @@ void BleTemperatureGrp::connectCb(uint16_t conn_handle)
   }
 }
 
-void BleTemperatureGrp::disconnectCb(uint16_t conn_handle, uint8_t reason)
+void BleSensorGrp::disconnectCb(uint16_t conn_handle, uint8_t reason)
 {
   Log.notice("Disconnected" CR);
 
-  BleTemperatureBase *temp = gBleTemperatureGrp.getTemperature(conn_handle);
+  BleSensorBase *temp = gBleSensorGrp.getSensor(conn_handle);
 
   if (temp != NULL)
   {
@@ -247,9 +262,9 @@ void BleTemperatureGrp::disconnectCb(uint16_t conn_handle, uint8_t reason)
   }
 }
 
-void BleTemperatureGrp::notifyCb(BLEClientCharacteristic *chr, uint8_t *data, uint16_t len)
+void BleSensorGrp::notifyCb(BLEClientCharacteristic *chr, uint8_t *data, uint16_t len)
 {
-  BleTemperatureBase *temp = gBleTemperatureGrp.getTemperature(chr->connHandle());
+  BleSensorBase *temp = gBleSensorGrp.getSensor(chr->connHandle());
 
   if (temp != NULL)
   {
@@ -257,9 +272,9 @@ void BleTemperatureGrp::notifyCb(BLEClientCharacteristic *chr, uint8_t *data, ui
   }
 }
 
-void BleTemperatureGrp::indicateCb(BLEClientCharacteristic *chr, uint8_t *data, uint16_t len)
+void BleSensorGrp::indicateCb(BLEClientCharacteristic *chr, uint8_t *data, uint16_t len)
 {
-  BleTemperatureBase *temp = gBleTemperatureGrp.getTemperature(chr->connHandle());
+  BleSensorBase *temp = gBleSensorGrp.getSensor(chr->connHandle());
 
   if (temp != NULL)
   {
@@ -267,4 +282,4 @@ void BleTemperatureGrp::indicateCb(BLEClientCharacteristic *chr, uint8_t *data, 
   }
 }
 
-BleTemperatureGrp gBleTemperatureGrp;
+BleSensorGrp gBleSensorGrp;

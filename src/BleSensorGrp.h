@@ -20,22 +20,22 @@
 #pragma once
 
 #include <bluefruit.h>
-#include "BleTemperatureBase.h"
+#include "BleSensorBase.h"
 
 #define MAX_TEMPERATURES 12u
 
-class BleTemperatureGrp
+class BleSensorGrp
 {
 public:
-  BleTemperatureGrp();
+  BleSensorGrp();
   void init();
   void virtual update();
-  void add(BleTemperatureBase *temperature);
-  BleTemperatureBase *getTemperature(uint16_t conn_handle);
-  BleTemperatureBase *getTemperature(ble_gap_addr_t *peerAddress);
+  void add(BleSensorBase *sensor);
+  BleSensorBase *getSensor(uint16_t conn_handle);
+  BleSensorBase *getSensor(ble_gap_addr_t *peerAddress);
   String getDevicesJson();
   void enable(uint32_t enable);
-  BleTemperatureBase *operator[](int index);
+  BleSensorBase *operator[](int index);
   uint8_t count();
   static void notifyCb(BLEClientCharacteristic *chr, uint8_t *data, uint16_t len);
   static void indicateCb(BLEClientCharacteristic *chr, uint8_t *data, uint16_t len);
@@ -45,8 +45,8 @@ private:
   static void connectCb(uint16_t conn_handle);
   static void disconnectCb(uint16_t conn_handle, uint8_t reason);
 
-  static BleTemperatureBase *temperatures[MAX_TEMPERATURES];
+  static BleSensorBase *sensors[MAX_TEMPERATURES];
   uint8_t addIndex;
 };
 
-extern BleTemperatureGrp gBleTemperatureGrp;
+extern BleSensorGrp gBleSensorGrp;

@@ -47,16 +47,17 @@ typedef struct ATTR_PACKED
   int8_t rssi;
 } BeaconType;
 
-class BleTemperatureBase
+class BleSensorBase
 {
 public:
-  BleTemperatureBase(ble_gap_addr_t *peerAddress, uint8_t numOfTemperatures, boolean beaconOnly);
-  ~BleTemperatureBase();
-  float getValue(uint8_t index);
+  BleSensorBase(ble_gap_addr_t *peerAddress, uint8_t numOfTemperatures, boolean beaconOnly);
+  ~BleSensorBase();
+  virtual float getValue(uint8_t index);
   uint8_t getValueCount() { return valueCount; };
   uint8_t getGlobalIndex();
   uint16_t getBleConnHdl() { return bleConnHdl; };
   String getName() { return name; };
+  virtual String getUnit(uint8_t index = 0u) { return unit; };
   boolean isConnected() { return connected; };
   ble_gap_addr_t *getPeerAddress() { return &peerAddress; };
   String getPeerAddressString();
@@ -83,6 +84,7 @@ protected:
   boolean beaconOnly;
   ble_gap_addr_t peerAddress;
   String name;
+  String unit;
   int8_t rssi;
 
 private:

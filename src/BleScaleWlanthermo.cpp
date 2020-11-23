@@ -19,24 +19,25 @@
 ****************************************************/
 
 #include "BleSensorGrp.h"
-#include "BleTemperatureWlanthermo.h"
+#include "BleScaleWlanthermo.h"
 #include <ArduinoLog.h>
 
-#define WLANTHERMO_NUM_OF_TEMERATURES 2u
+#define SCALE_WLANTHERMO_NUM_OF_TEMERATURES 1u
 
-BleTemperatureWlanthermo::BleTemperatureWlanthermo(ble_gap_addr_t *peerAddress) : BleSensorBase(peerAddress, WLANTHERMO_NUM_OF_TEMERATURES, false)
+BleScaleWlanthermo::BleScaleWlanthermo(ble_gap_addr_t *peerAddress) : BleSensorBase(peerAddress, SCALE_WLANTHERMO_NUM_OF_TEMERATURES, false)
 {
-  bleServ = new BLEClientService(BLEUuid(SERV_UUID_TEMPERATURE_WLANTHERMO));
-  bleChar = new BLEClientCharacteristic(BLEUuid(CHAR_UUID_WLANTHERMO));
+  bleServ = new BLEClientService(BLEUuid(SERV_UUID_SCALE_WLANTHERMO));
+  bleChar = new BLEClientCharacteristic(BLEUuid(CHAR_UUID_SCALE_WLANTHERMO));
   bleChar->setNotifyCallback(BleSensorGrp::notifyCb);
 
   bleServ->begin();
   bleChar->begin();
 
-  this->name = "WT Tiny";
+  this->name = "WT Scale";
+  this->unit = "kg";
 }
 
-void BleTemperatureWlanthermo::connect(uint16_t bleConnHdl)
+void BleScaleWlanthermo::connect(uint16_t bleConnHdl)
 {
   char buffer[30] = {0};
 
@@ -89,15 +90,25 @@ void BleTemperatureWlanthermo::connect(uint16_t bleConnHdl)
   this->connected = true;
 }
 
-void BleTemperatureWlanthermo::notify(BLEClientCharacteristic *chr, uint8_t *data, uint16_t len)
+static uint32_t uint32_decode(const uint8_t *encodedData)
 {
-  currentValue[0] = ((float)(data[0] + (data[1] << 8))) / 10.0;
-  currentValue[1] = ((float)(data[2] + (data[3] << 8))) / 10.0;
+  return ((((uint32_t)((uint8_t *)encodedData)[0]) << 0u) |
+          (((uint32_t)((uint8_t *)encodedData)[1]) << 8u) |
+          (((uint32_t)((uint8_t *)encodedData)[2]) << 16u) |
+          (((uint32_t)((uint8_t *)encodedData)[3]) << 24u));
+}
+
+void BleScaleWlanthermo::notify(BLEClientCharacteristic *chr, uint8_t *data, uint16_t len)
+{
   this->lastSeen = 0u;
 
+  int32_t value = uint32_decode(data);
+
+  currentValue[0] = (float)value / 1000;
+
   Log.notice("----------- Wlanthermo data -----------" CR);
-  Log.notice("Temperature 0: %F" CR, currentValue[0]);
-  Log.notice("Temperature 1: %F" CR, currentValue[1]);
+  Log.notice("Weight: %d" CR, value);
+  Log.notice("Weight: %F" CR, currentValue[0]);
 
   Log.verbose("Raw data: ");
 
@@ -115,8 +126,18 @@ void BleTemperatureWlanthermo::notify(BLEClientCharacteristic *chr, uint8_t *dat
   }
 }
 
-void BleTemperatureWlanthermo::disconnect(uint16_t conn_handle, uint8_t reason)
+void BleScaleWlanthermo::disconnect(uint16_t conn_handle, uint8_t reason)
 {
   this->bleConnHdl = INVALID_BLE_CONN_HANDLE;
   this->connected = false;
+}
+
+float BleScaleWlanthermo::getValue(uint8_t index = 0u)
+{
+  float value = INACTIVEVALUE;
+
+  if ((index < this->valueCount) && this->connected)
+    value = (float)((int)(this->currentValue[index] * 1000)) / 1000; //limit float
+
+  return value;
 }

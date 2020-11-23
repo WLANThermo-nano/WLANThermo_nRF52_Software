@@ -18,7 +18,7 @@
     
 ****************************************************/
 
-#include "BleTemperatureGrp.h"
+#include "BleSensorGrp.h"
 #include "BleTemperatureInkbird.h"
 #include <ArduinoLog.h>
 
@@ -29,12 +29,12 @@ static const uint8_t credentials[] = {0x21, 0x07, 0x06, 0x05, 0x04, 0x03, 0x02, 
 static const uint8_t enableRealtimeData[] = {0x0B, 0x01, 0x00, 0x00, 0x00, 0x00};
 static const uint8_t unitCelsius[] = {0x02, 0x00, 0x00, 0x00, 0x00, 0x00};
 
-BleTemperatureInkbird::BleTemperatureInkbird(ble_gap_addr_t *peerAddress) : BleTemperatureBase(peerAddress, INKBIRD_NUM_OF_TEMERATURES, false)
+BleTemperatureInkbird::BleTemperatureInkbird(ble_gap_addr_t *peerAddress) : BleSensorBase(peerAddress, INKBIRD_NUM_OF_TEMERATURES, false)
 {
   bleServ = new BLEClientService(BLEUuid(SERV_UUID_INKBIRD));
   bleCharLogin = new BLEClientCharacteristic(BLEUuid(CHAR_UUID_INKBIRD_LOGIN));
   bleCharRealtimeData = new BLEClientCharacteristic(BLEUuid(CHAR_UUID_INKBIRD_REALTIMEDATA));
-  bleCharRealtimeData->setNotifyCallback(BleTemperatureGrp::notifyCb);
+  bleCharRealtimeData->setNotifyCallback(BleSensorGrp::notifyCb);
   bleCharSettings = new BLEClientCharacteristic(BLEUuid(CHAR_UUID_INKBIRD_SETTINGS));
 
   bleServ->begin();

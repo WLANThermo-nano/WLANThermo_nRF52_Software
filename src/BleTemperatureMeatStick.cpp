@@ -18,7 +18,7 @@
     
 ****************************************************/
 
-#include "BleTemperatureGrp.h"
+#include "BleSensorGrp.h"
 #include "BleTemperatureMeatStick.h"
 #include <ArduinoLog.h>
 
@@ -28,14 +28,14 @@
 #define MEATSTICK_BEACON_LENGTH 21u
 #define MEATSTICK_CONNECTION_TIMEOUT 60u
 
-BleTemperatureMeatStick::BleTemperatureMeatStick(ble_gap_addr_t *peerAddress, BeaconType *beacon) : BleTemperatureBase(peerAddress, MEATSTICK_NUM_OF_TEMERATURES, true)
+BleTemperatureMeatStick::BleTemperatureMeatStick(ble_gap_addr_t *peerAddress, BeaconType *beacon) : BleSensorBase(peerAddress, MEATSTICK_NUM_OF_TEMERATURES, true)
 {
   this->name = "The MeatStick";
 }
 
 void BleTemperatureMeatStick::update()
 {
-  BleTemperatureBase::update();
+  BleSensorBase::update();
 
   this->connected = (this->lastSeen < MEATSTICK_CONNECTION_TIMEOUT) ? true : false;
 }

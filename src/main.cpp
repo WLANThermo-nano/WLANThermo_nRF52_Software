@@ -20,7 +20,7 @@
 
 #include <bluefruit.h>
 #include <ArduinoLog.h>
-#include "BleTemperatureGrp.h"
+#include "BleSensorGrp.h"
 #include "Version.h"
 
 
@@ -41,7 +41,7 @@ void setup()
 
   Serial.printf("@@Application: %d\n", BUILD_TIMESTAMP);
 
-  gBleTemperatureGrp.init();
+  gBleSensorGrp.init();
 }
 
 void loop()
@@ -62,8 +62,8 @@ void loop()
       if((indexOfEqual > 0) && (command.length() - (indexOfEqual + 1)) > 0)
       {
         String enableString = command.substring(indexOfEqual + 1);
-        gBleTemperatureGrp.enable(enableString.toInt());
-        String json = gBleTemperatureGrp.getDevicesJson();
+        gBleSensorGrp.enable(enableString.toInt());
+        String json = gBleSensorGrp.getDevicesJson();
         Serial.println(json);
       }
     }
@@ -85,7 +85,7 @@ void loop()
 
   if(millis() - prevMillis > 1000u)
   {
-    gBleTemperatureGrp.update();
+    gBleSensorGrp.update();
     prevMillis = millis();
   }
 }

@@ -19,7 +19,7 @@
 ****************************************************/
 #pragma once
 
-#include "BleTemperatureBase.h"
+#include "BleSensorBase.h"
 
 /*const uint8_t SERV_UUID_INKBIRD[16]              = {0xfb, 0x34, 0x9b, 0x5f, 0x80, 0x00, 0x00, 0x80, 0x00, 0x10, 0x00, 0x00, 0xf0, 0xff, 0x00, 0x00};
 const uint8_t CHAR_UUID_INKBIRD_LOGIN [16]       = {0xfb, 0x34, 0x9b, 0x5f, 0x80, 0x00, 0x00, 0x80, 0x00, 0x10, 0x00, 0x00, 0xf2, 0xff, 0x00, 0x00};
@@ -31,7 +31,7 @@ const uint16_t CHAR_UUID_INKBIRD_LOGIN = 0xFFF2u;
 const uint16_t CHAR_UUID_INKBIRD_REALTIMEDATA = 0xFFF4u;
 const uint16_t CHAR_UUID_INKBIRD_SETTINGS = 0xFFF5u;
 
-class BleTemperatureInkbird : public BleTemperatureBase
+class BleTemperatureInkbird : public BleSensorBase
 {
 public:
   BleTemperatureInkbird(ble_gap_addr_t *peerAddress);

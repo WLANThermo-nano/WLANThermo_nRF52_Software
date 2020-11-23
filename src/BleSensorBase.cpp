@@ -18,14 +18,14 @@
     
 ****************************************************/
 
-#include "BleTemperatureBase.h"
+#include "BleSensorBase.h"
 
 #define LOWEST_VALUE -31
 #define HIGHEST_VALUE 999
 
-uint8_t BleTemperatureBase::globalIndexTracker = 0u;
+uint8_t BleSensorBase::globalIndexTracker = 0u;
 
-BleTemperatureBase::BleTemperatureBase(ble_gap_addr_t *peerAddress, uint8_t numOfTemperatures = NUM_OF_TEMPERATURES_DEFAULT, boolean beaconOnly = false)
+BleSensorBase::BleSensorBase(ble_gap_addr_t *peerAddress, uint8_t numOfTemperatures = NUM_OF_TEMPERATURES_DEFAULT, boolean beaconOnly = false)
 {
   this->globalIndex = this->globalIndexTracker++;
   this->bleConnHdl = INVALID_BLE_CONN_HANDLE;
@@ -42,12 +42,12 @@ BleTemperatureBase::BleTemperatureBase(ble_gap_addr_t *peerAddress, uint8_t numO
     this->currentValue[index] = INACTIVEVALUE;
 }
 
-BleTemperatureBase::~BleTemperatureBase()
+BleSensorBase::~BleSensorBase()
 {
   this->globalIndexTracker--;
 }
 
-float BleTemperatureBase::getValue(uint8_t index = 0u)
+float BleSensorBase::getValue(uint8_t index = 0u)
 {
   float value = INACTIVEVALUE;
 
@@ -57,12 +57,12 @@ float BleTemperatureBase::getValue(uint8_t index = 0u)
   return value;
 }
 
-uint8_t BleTemperatureBase::getGlobalIndex()
+uint8_t BleSensorBase::getGlobalIndex()
 {
   return this->globalIndex;
 }
 
-String BleTemperatureBase::getPeerAddressString()
+String BleSensorBase::getPeerAddressString()
 {
   char peerAddressArray[18] = {0};
   uint8_t *b = this->peerAddress.addr;
@@ -72,7 +72,7 @@ String BleTemperatureBase::getPeerAddressString()
   return peerAddressArray;
 }
 
-void BleTemperatureBase::update()
+void BleSensorBase::update()
 {
   if(beaconOnly != true)
   {
@@ -94,7 +94,7 @@ void BleTemperatureBase::update()
   lastSeen++;
 }
 
-void BleTemperatureBase::advReceived(uint8_t *advData, uint8_t advDataLength)
+void BleSensorBase::advReceived(uint8_t *advData, uint8_t advDataLength)
 {
   lastSeen = 0u;
   
