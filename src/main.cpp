@@ -23,23 +23,22 @@
 #include "BleSensorGrp.h"
 #include "Version.h"
 
-
 #define SERIAL_CMD_GET_DEVICES    "getDevices"
 #define SERIAL_CMD_GET_VERSION    "getVersion"
 #define SERIAL_CMD_SET_LOG_LEVEL  "setLogLevel"
 
 void setup()
 {
-  Serial.begin(115200);
+  SERIAL_VAR.begin(115200);
 
 #ifdef NRF_DONGLE
-  Log.begin(LOG_LEVEL_VERBOSE, &Serial, false);
+  Log.begin(LOG_LEVEL_VERBOSE, &SERIAL_VAR, false);
   while(!Serial);
 #else
-  Log.begin(LOG_LEVEL_FATAL, &Serial, false);
+  Log.begin(LOG_LEVEL_FATAL, &SERIAL_VAR, false);
 #endif
 
-  Serial.printf("@@Application: %d\n", BUILD_TIMESTAMP);
+  SERIAL_VAR.printf("@@Application: %d\n", BUILD_TIMESTAMP);
 
   gBleSensorGrp.init();
 }
@@ -48,9 +47,9 @@ void loop()
 {
   static uint32_t prevMillis = millis();
   
-  if(Serial.available())
+  if(SERIAL_VAR.available())
   {
-    String command = Serial.readStringUntil('\n');
+    String command = SERIAL_VAR.readStringUntil('\n');
 
     command.replace("\n", "");
     Log.notice("Received command: %s" CR,  command.c_str());
@@ -64,12 +63,12 @@ void loop()
         String enableString = command.substring(indexOfEqual + 1);
         gBleSensorGrp.enable(enableString.toInt());
         String json = gBleSensorGrp.getDevicesJson();
-        Serial.println(json);
+        SERIAL_VAR.println(json);
       }
     }
     else if(command.startsWith(SERIAL_CMD_GET_VERSION))
     {
-      Serial.println(FIRMWAREVERSION);
+      SERIAL_VAR.println(FIRMWAREVERSION);
     }
     else if(command.startsWith(SERIAL_CMD_SET_LOG_LEVEL))
     {

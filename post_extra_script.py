@@ -8,6 +8,14 @@ import binascii
 import zipfile
 import time
 
+if "nrf52840" in str(env["PIOENV"]):
+    sd_param = "0xB6"
+    variant = "nrf52840"
+else:
+    sd_param = "0xB7"
+    variant = "nrf52832"
+
+
 firmware_file = ".pio/build/" + env["PIOENV"] + "/firmware.hex"
 dfu_file = ".pio/build/" + env["PIOENV"] + "/app_dfu_package.zip"
 out_folder = "out/"
@@ -17,7 +25,7 @@ def install_pip(package):
     subprocess.call(["pip", "install", "--upgrade", package])
 
 def call_nrfutil():
-    cmd = "nrfutil pkg generate --hw-version 52 --application-version " + str(fw_version) + " --application " + firmware_file + " --sd-req 0xB7 " + dfu_file
+    cmd = "nrfutil pkg generate --hw-version 52 --application-version " + str(fw_version) + " --application " + firmware_file + " --sd-req " + sd_param + " " + dfu_file
     args = shlex.split(cmd)
     subprocess.call(args)
 
@@ -41,8 +49,8 @@ def after_buildprog(source, target, env):
     call_nrfutil()
     if os.path.exists("out") == False:
         os.mkdir("out")
-    extract_and_save_header("firmware.dat", "bleFirmwareDat.h", out_folder)
-    extract_and_save_header("firmware.bin", "bleFirmwareBin.h", out_folder)
-    add_version_to_bin_header("bleFirmwareBin.h", out_folder, fw_version)
+    extract_and_save_header("firmware.dat", "bleFirmwareDat_" + variant + ".h", out_folder)
+    extract_and_save_header("firmware.bin", "bleFirmwareBin_" + variant + ".h", out_folder)
+    add_version_to_bin_header("bleFirmwareBin_" + variant + ".h", out_folder, fw_version)
 
 env.AddPostAction("buildprog", after_buildprog)

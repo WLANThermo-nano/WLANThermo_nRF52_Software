@@ -61,7 +61,7 @@ void BleSensorGrp::init()
     Log.fatal("Bluefruit init failed!" CR);
 
   Bluefruit.setName("Wlanthermo");
-  Bluefruit.setTxPower(4);
+  Bluefruit.setTxPower(BLE_TX_POWER);
 
   // Callbacks for Central
   Bluefruit.Central.setDisconnectCallback(BleSensorGrp::disconnectCb);
