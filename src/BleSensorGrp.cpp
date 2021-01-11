@@ -24,6 +24,7 @@
 #include "BleScaleWlanthermo.h"
 #include "BleTemperatureInkbird.h"
 #include "BleTemperatureMeatStick.h"
+#include "BleTemperatureTY530.h"
 #include <ArduinoJson.h>
 #include <ArduinoLog.h>
 
@@ -211,6 +212,12 @@ void BleSensorGrp::scanCb(ble_gap_evt_adv_report_t *report)
     {
       Log.notice("Inkbird %s received" CR, (true == report->type.scan_response) ? "scan response" : "advertising");
       BleTemperatureInkbird *temp = new BleTemperatureInkbird(&report->peer_addr);
+      gBleSensorGrp.add(temp);
+    }
+    else if (Bluefruit.Scanner.checkReportForUuid(report, SERV_UUID_TY530))
+    {
+      Log.notice("TY530 %s received" CR, (true == report->type.scan_response) ? "scan response" : "advertising");
+      BleTemperatureTY530 *temp = new BleTemperatureTY530(&report->peer_addr);
       gBleSensorGrp.add(temp);
     }
     else if (Bluefruit.Scanner.parseReportByType(report, 0xFFu, (uint8_t *)&beacon, sizeof(BeaconType)) == sizeof(BeaconType))

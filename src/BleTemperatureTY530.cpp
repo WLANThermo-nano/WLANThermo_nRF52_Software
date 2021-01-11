@@ -1,5 +1,5 @@
 /*************************************************** 
-    Copyright (C) 2020  Martin Koerner
+    Copyright (C) 2021  Martin Koerner
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,15 +19,15 @@
 ****************************************************/
 
 #include "BleSensorGrp.h"
-#include "BleTemperatureMeater.h"
+#include "BleTemperatureTY530.h"
 #include <ArduinoLog.h>
 
-#define MEATER_NUM_OF_TEMERATURES 2u
+#define TY530_NUM_OF_TEMERATURES 2u
 
-BleTemperatureMeater::BleTemperatureMeater(ble_gap_addr_t *peerAddress) : BleSensorBase(peerAddress, MEATER_NUM_OF_TEMERATURES, false)
+BleTemperatureTY530::BleTemperatureTY530(ble_gap_addr_t *peerAddress) : BleSensorBase(peerAddress, TY530_NUM_OF_TEMERATURES, false)
 {
-  bleServ = new BLEClientService(BLEUuid(SERV_UUID_MEATER));
-  bleChar = new BLEClientCharacteristic(BLEUuid(CHAR_UUID_MEATER));
+  bleServ = new BLEClientService(BLEUuid(SERV_UUID_TY530));
+  bleChar = new BLEClientCharacteristic(BLEUuid(CHAR_UUID_TY530));
   bleChar->setNotifyCallback(BleSensorGrp::notifyCb);
 
   bleServ->begin();
@@ -36,7 +36,7 @@ BleTemperatureMeater::BleTemperatureMeater(ble_gap_addr_t *peerAddress) : BleSen
   Bluefruit.Central.connect(peerAddress);
 }
 
-void BleTemperatureMeater::connect(uint16_t bleConnHdl)
+void BleTemperatureTY530::connect(uint16_t bleConnHdl)
 {
   char buffer[30] = {0};
 
@@ -59,7 +59,7 @@ void BleTemperatureMeater::connect(uint16_t bleConnHdl)
     return;
   }
 
-  Log.notice("Discovering Meater service ... ");
+  Log.notice("Discovering TY530 service ... ");
 
   // Check for service
   if (!bleServ->discover(bleConnHdl))
@@ -72,7 +72,7 @@ void BleTemperatureMeater::connect(uint16_t bleConnHdl)
   Log.notice("success" CR);
 
   // Check characteristic
-  Log.notice("Discovering Meater characteristic ... ");
+  Log.notice("Discovering TY530 characteristic ... ");
   if (!bleChar->discover())
   {
     Log.notice("failed!" CR);
@@ -83,7 +83,7 @@ void BleTemperatureMeater::connect(uint16_t bleConnHdl)
   Log.notice("success" CR);
 
   // Enable notification
-  Log.notice("Enabling Meater notification ... ");
+  Log.notice("Enabling TY530 notification ... ");
   if (!bleChar->enableNotify())
   {
     Log.notice("failed!" CR);
@@ -96,35 +96,13 @@ void BleTemperatureMeater::connect(uint16_t bleConnHdl)
   this->connected = true;
 }
 
-float BleTemperatureMeater::readTipTemperature(uint8_t *data)
+void BleTemperatureTY530::notify(BLEClientCharacteristic *chr, uint8_t *data, uint16_t len)
 {
-  SplitTwoBytes tip;
-  tip.lowByte = data[0];
-  tip.highByte = data[1];
-  return (float(tip.value) + 8.0) / 16.0;
-}
-
-float BleTemperatureMeater::readAmbientTemperature(uint8_t *data)
-{
-  SplitTwoBytes tip;
-  SplitTwoBytes ambientRa;
-  SplitTwoBytes ambientOa;
-  tip.lowByte = data[0];
-  tip.highByte = data[1];
-  ambientRa.lowByte = data[2];
-  ambientRa.highByte = data[3];
-  ambientOa.lowByte = data[4];
-  ambientOa.highByte = data[5];
-  return ((tip.value + (max(0, ((((ambientRa.value - min(48, ambientOa.value)) * 16) * 589)) / 1487))) + 8.0) / 16.0;
-}
-
-void BleTemperatureMeater::notify(BLEClientCharacteristic *chr, uint8_t *data, uint16_t len)
-{
-  currentValue[0] = readTipTemperature(data);
-  currentValue[1] = readAmbientTemperature(data);
+  currentValue[0] = ((float((data[3] << 8u) + data[2])) / 10.0f) - 40.0f;
+  currentValue[1] = ((float((data[5] << 8u) + data[4])) / 10.0f) - 40.0f;
   this->lastSeen = 0u;
 
-  Log.notice("----------- Meater data -----------" CR);
+  Log.notice("----------- TY530 data -----------" CR);
   Log.notice("Tip temperature: %F" CR, currentValue[0]);
   Log.notice("Ambient temperature: %F" CR, currentValue[1]);
 
@@ -136,7 +114,7 @@ void BleTemperatureMeater::notify(BLEClientCharacteristic *chr, uint8_t *data, u
   Log.verbose(CR);
 }
 
-void BleTemperatureMeater::disconnect(uint16_t conn_handle, uint8_t reason)
+void BleTemperatureTY530::disconnect(uint16_t conn_handle, uint8_t reason)
 {
   this->bleConnHdl = INVALID_BLE_CONN_HANDLE;
   this->connected = false;
