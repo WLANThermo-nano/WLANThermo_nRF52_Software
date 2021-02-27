@@ -69,7 +69,7 @@ void BleSensorGrp::init()
   Bluefruit.Central.setConnectCallback(BleSensorGrp::connectCb);
 
   Bluefruit.Scanner.setRxCallback(BleSensorGrp::scanCb);
-  Bluefruit.Scanner.setInterval(160, 80); // in unit of 0.625 ms
+  Bluefruit.Scanner.setInterval(80u, 80u); // in unit of 0.625 ms
   //Bluefruit.Scanner.filterUuid((BLEUuid *)filterBleUuids, sizeof(filterBleUuids) / sizeof(BLEUuid));
   Bluefruit.Scanner.useActiveScan(true);
   Bluefruit.Scanner.start(0);
