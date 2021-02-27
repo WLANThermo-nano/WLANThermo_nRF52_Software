@@ -1,4 +1,4 @@
-/*************************************************** 
+/***************************************************
     Copyright (C) 2020  Martin Koerner
 
     This program is free software: you can redistribute it and/or modify
@@ -13,9 +13,9 @@
 
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
-    
+
     HISTORY: Please refer Github History
-    
+
 ****************************************************/
 
 #include "BleSensorGrp.h"
@@ -26,7 +26,7 @@
 #define MEATSTICK_BEACON_MANUFACTURER 0x004Cu
 #define MEATSTICK_BEACON_TYPE 0x02u
 #define MEATSTICK_BEACON_LENGTH 21u
-#define MEATSTICK_CONNECTION_TIMEOUT 60u
+#define MEATSTICK_CONNECTION_TIMEOUT 180u
 
 BleTemperatureMeatStick::BleTemperatureMeatStick(ble_gap_addr_t *peerAddress, BeaconType *beacon) : BleSensorBase(peerAddress, MEATSTICK_NUM_OF_TEMERATURES, true)
 {
@@ -73,11 +73,24 @@ void BleTemperatureMeatStick::readBeacon(uint8_t *advData, uint8_t advDataLength
           currentValue[1] = (float(beacon.minor.lowByte - 0x04u + 0x1FEu)) / 2.0;
           updatedValue = true;
         }
+        else if (0u == memcmp(beacon.uuid128, CHAR_UUID_MEATSTICK_CYBER_T0, sizeof(CHAR_UUID_MEATSTICK_CYBER_T0)))
+        {
+          currentValue[0] = (float(beacon.minor.highByte - 0x01u)) / 2.0;
+          currentValue[1] = (float(beacon.minor.lowByte - 0x01u));
+          updatedValue = true;
+        }
+        else if (0u == memcmp(beacon.uuid128, CHAR_UUID_MEATSTICK_CYBER_MINI_T0, sizeof(CHAR_UUID_MEATSTICK_CYBER_MINI_T0)))
+        {
+          currentValue[0] = (float(beacon.minor.highByte - 0x01u)) / 2.0;
+          valueCount = 1u;
+          updatedValue = true;
+        }
 
         if(true == updatedValue)
         {
           Log.notice("----------- MeatStick data -----------" CR);
           Log.notice("Tip temperature: %F" CR, currentValue[0]);
+          if(valueCount > 1u)
           Log.notice("Ambient temperature: %F" CR, currentValue[1]);
         }
       }
@@ -104,6 +117,15 @@ boolean BleTemperatureMeatStick::hasMeatStickData(BeaconType *beacon)
     {
       hasData = true;
     }
+    else if(0u == memcmp(beacon->uuid128, CHAR_UUID_MEATSTICK_CYBER_T0, sizeof(CHAR_UUID_MEATSTICK_CYBER_T0)))
+    {
+      hasData = true;
+    }
+    else if(0u == memcmp(beacon->uuid128, CHAR_UUID_MEATSTICK_CYBER_MINI_T0, sizeof(CHAR_UUID_MEATSTICK_CYBER_MINI_T0)))
+    {
+      hasData = true;
+    }
+
   }
 
   return hasData;
