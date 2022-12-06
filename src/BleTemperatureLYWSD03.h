@@ -1,5 +1,5 @@
 /*************************************************** 
-    Copyright (C) 2021  Martin Koerner
+    Copyright (C) 2021  Martin Koerner, Steffen Ochs
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -21,9 +21,11 @@
 
 #include "BleSensorBase.h"
 
-const uint16_t SERV_UUID_LYWSD03 = 0xFB00u;
-const uint16_t CHAR_UUID_LYWSD03 = 0xFB02u;
+// UUIDs für Custom Firmware
+const uint16_t SERV_UUID_LYWSD03 = 0x181Au;
+const uint16_t CHAR_UUID_LYWSD03 = 0x2A1Fu;
 
+// UUIDs für Hersteller Firmware
 //static BLEUUID serviceUUID("ebe0ccb0-7a0a-4b0c-8a1a-6ff2997da3a6");
 //static BLEUUID    charUUID("ebe0ccc1-7a0a-4b0c-8a1a-6ff2997da3a6");
 

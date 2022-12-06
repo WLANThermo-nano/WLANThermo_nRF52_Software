@@ -98,13 +98,12 @@ void BleTemperatureLYWSD03::connect(uint16_t bleConnHdl)
 
 void BleTemperatureLYWSD03::notify(BLEClientCharacteristic *chr, uint8_t *data, uint16_t len)
 {
-  currentValue[0] = ((float(data[0] | (data[1] << 8u))) * 0.01f);  // temperarure
-  currentValue[1] = (float(data[2]));  // humidity
+  currentValue[0] = (float(data[0]) * 0.1f);  // temperature
+  
   this->lastSeen = 0u;
 
   Log.notice("----------- LYWSD03 data -----------" CR);
   Log.notice("temperature: %F" CR, currentValue[0]);
-  Log.notice("humidity: %F" CR, currentValue[1]);
 
   Log.verbose("Raw data: ");
 
