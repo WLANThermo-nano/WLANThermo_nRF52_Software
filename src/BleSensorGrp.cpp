@@ -20,6 +20,7 @@
 
 #include "BleSensorGrp.h"
 #include "BleTemperatureMeater.h"
+#include "BleTemperatureMeater2.h"
 #include "BleTemperatureWlanthermo.h"
 #include "BleScaleWlanthermo.h"
 #include "BleTemperatureInkbird.h"
@@ -43,6 +44,7 @@
 
 const BLEUuid filterBleUuids[] = {
     BLEUuid(SERV_UUID_MEATER),
+    BLEUuid(SERV_UUID_MEATER2),
     BLEUuid(SERV_UUID_INKBIRD),
     BLEUuid(SERV_UUID_TEMPERATURE_WLANTHERMO)};
 
@@ -194,6 +196,12 @@ void BleSensorGrp::scanCb(ble_gap_evt_adv_report_t *report)
     {
       Log.notice("Meater %s received" CR, (true == report->type.scan_response) ? "scan response" : "advertising");
       BleTemperatureMeater *temp = new BleTemperatureMeater(&report->peer_addr);
+      gBleSensorGrp.add(temp);
+    }
+    else if (Bluefruit.Scanner.checkReportForUuid(report, SERV_UUID_MEATER2))
+    {
+      Log.notice("Meater2 %s received" CR, (true == report->type.scan_response) ? "scan response" : "advertising");
+      BleTemperatureMeater2 *temp = new BleTemperatureMeater2(&report->peer_addr);
       gBleSensorGrp.add(temp);
     }
     else if (Bluefruit.Scanner.checkReportForUuid(report, SERV_UUID_TEMPERATURE_WLANTHERMO))

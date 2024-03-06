@@ -23,6 +23,7 @@ fw_version = env["UNIX_TIME"] #use utc unix time as version
 
 def install_pip(package):
     subprocess.call(["pip", "install", "--upgrade", package])
+    print("install done")
 
 def call_nrfutil():
     cmd = "nrfutil pkg generate --hw-version 52 --application-version " + str(fw_version) + " --application " + firmware_file + " --sd-req " + sd_param + " " + dfu_file
@@ -46,6 +47,7 @@ def add_version_to_bin_header(header_filename, target_folder, version):
 def after_buildprog(source, target, env):
     print("Generate DFU files")
     install_pip("nrfutil")
+    print("Call nrfutil")
     call_nrfutil()
     if os.path.exists("out") == False:
         os.mkdir("out")
