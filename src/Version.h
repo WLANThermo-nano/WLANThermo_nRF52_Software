@@ -25,7 +25,7 @@
 /*REL_VER*/
 
 #ifndef FIRMWAREVERSION
-#define FIRMWAREVERSION  "v1.0.0"
+#define FIRMWAREVERSION  "v1.0.1"
 #endif
 
 #endif /* C_VERSION_H_ */

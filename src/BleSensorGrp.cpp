@@ -40,7 +40,7 @@
 #define BLE_JSON_SENSORS_VALUE "v"
 #define BLE_JSON_SENSORS_UNIT "u"
 
-#define BLE_CENTRAL_DEVICE_COUNT 4u
+#define BLE_CENTRAL_DEVICE_COUNT 3u
 
 const BLEUuid filterBleUuids[] = {
     BLEUuid(SERV_UUID_MEATER),
