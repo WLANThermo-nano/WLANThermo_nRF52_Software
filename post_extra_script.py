@@ -25,7 +25,10 @@ def install_pip(package):
     subprocess.call(["pip", "install", "--upgrade", package])
 
 def call_nrfutil():
-    cmd = "nrfutil pkg generate --hw-version 52 --application-version " + str(fw_version) + " --application " + firmware_file + " --sd-req " + sd_param + " " + dfu_file
+    #cmd = "nrfutil pkg generate --hw-version 52 --application-version " + str(fw_version) + " --application " + firmware_file + " --sd-req " + sd_param + " " + dfu_file
+    cmd = "adafruit-nrfutil dfu genpkg --dev-type 0x0052 --application-version " + str(fw_version) + " --application " + firmware_file + " --sd-req " + sd_param + " " + dfu_file
+    # https://infocenter.nordicsemi.com/index.jsp?topic=%2Fug_nrfutil%2FUG%2Fnrfutil%2Fnrfutil_pkg.html
+    # Parameter sd-req bestimmt die Version des Softdevices
     args = shlex.split(cmd)
     subprocess.call(args)
 
@@ -45,7 +48,8 @@ def add_version_to_bin_header(header_filename, target_folder, version):
 
 def after_buildprog(source, target, env):
     print("Generate DFU files")
-    install_pip("nrfutil")
+    #install_pip("nrfutil")
+    install_pip("adafruit-nrfutil")
     call_nrfutil()
     if os.path.exists("out") == False:
         os.mkdir("out")
