@@ -1,4 +1,4 @@
-Import("env", "projenv")
+Import("env")
 
 import shutil
 import os
@@ -8,24 +8,29 @@ import binascii
 import zipfile
 import time
 
-if "nrf52840" in str(env["PIOENV"]):
+if "nrf52840" in str(env['PIOENV']):
     sd_param = "0xB6"
     variant = "nrf52840"
 else:
     sd_param = "0xB7"
     variant = "nrf52832"
 
-
-firmware_file = ".pio/build/" + env["PIOENV"] + "/firmware.hex"
-dfu_file = ".pio/build/" + env["PIOENV"] + "/app_dfu_package.zip"
+firmware_file = ".pio/build/" + env['PIOENV'] + "/firmware.hex"
+dfu_file = ".pio/build/" + env['PIOENV'] + "/app_dfu_package.zip"
 out_folder = "out/"
-fw_version = env["UNIX_TIME"] #use utc unix time as version
+fw_version = int(time.time())
 
 def install_pip(package):
     subprocess.call(["pip", "install", "--upgrade", package])
 
 def call_nrfutil():
-    cmd = "nrfutil pkg generate --hw-version 52 --application-version " + str(fw_version) + " --application " + firmware_file + " --sd-req " + sd_param + " " + dfu_file
+
+    # Download from https://www.nordicsemi.com/Products/Development-tools/nRF-Util/Download and put it into project folder/Users/martin/Downloads/nrfutil
+    cmd = "./nrfutil install nrf5sdk-tools"
+    args = shlex.split(cmd)
+    subprocess.call(args)
+
+    cmd = "./nrfutil nrf5sdk-tools pkg generate --hw-version 52 --application-version " + str(fw_version) + " --application " + firmware_file + " --sd-req " + sd_param + " " + dfu_file
     args = shlex.split(cmd)
     subprocess.call(args)
 
@@ -45,7 +50,6 @@ def add_version_to_bin_header(header_filename, target_folder, version):
 
 def after_buildprog(source, target, env):
     print("Generate DFU files")
-    install_pip("nrfutil")
     call_nrfutil()
     if os.path.exists("out") == False:
         os.mkdir("out")
