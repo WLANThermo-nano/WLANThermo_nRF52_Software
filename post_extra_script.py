@@ -25,7 +25,7 @@ def install_pip(package):
 
 def call_nrfutil():
 
-    # Download from https://www.nordicsemi.com/Products/Development-tools/nRF-Util/Download and put it into project folder/Users/martin/Downloads/nrfutil
+    # Download from https://www.nordicsemi.com/Products/Development-tools/nRF-Util/Download and put it into project folder
     cmd = "./nrfutil install nrf5sdk-tools"
     args = shlex.split(cmd)
     subprocess.call(args)
