@@ -4,6 +4,7 @@ on:
     branches:
       - master
       - develop
+      - fix/build
 
 jobs:
   main:
@@ -21,7 +22,10 @@ jobs:
           pip install -U platformio
           pip install -U adafruit-nrfutil
       - name: Build
-        run: platformio run
+        run: |
+          wget https://developer.nordicsemi.com/.pc-tools/nrfutil/x64-linux/nrfutil
+          chmod +x nrfutil
+          platformio run
       - uses: actions/upload-artifact@v1
         with:
           name: artifacts
