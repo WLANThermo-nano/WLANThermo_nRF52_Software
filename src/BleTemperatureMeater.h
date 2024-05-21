@@ -28,7 +28,7 @@ const uint8_t CHAR_UUID_MEATER[16] = {0x76, 0x28, 0x1a, 0x99, 0xd1, 0x45, 0x9b, 
 class BLEClientCharacteristicMeater : public BLEClientCharacteristic
 {
 public:
-  BLEClientCharacteristicMeater(BLEUuid bleuuid){};
+  BLEClientCharacteristicMeater(BLEUuid bleuuid) : BLEClientCharacteristic(bleuuid){};
   bool writeCCCD(uint16_t value)
   {
     const uint16_t conn_handle = _service->connHandle();
