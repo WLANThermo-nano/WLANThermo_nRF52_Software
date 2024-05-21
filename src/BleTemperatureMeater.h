@@ -29,9 +29,11 @@ class BLEClientCharacteristicMeater : public BLEClientCharacteristic
 {
 public:
   BLEClientCharacteristicMeater(BLEUuid bleuuid) : BLEClientCharacteristic(bleuuid){};
-  bool writeCCCD(uint16_t value)
+  bool writeCCCD(uint16_t value) override
   {
     const uint16_t conn_handle = _service->connHandle();
+
+    return false;
 
     ble_gattc_write_params_t param =
         {
