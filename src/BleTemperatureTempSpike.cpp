@@ -28,8 +28,8 @@ BleTemperatureTempSpike::BleTemperatureTempSpike(ble_gap_addr_t *peerAddress) : 
 {
 
   bleServ = new BLEClientService(BLEUuid(SERV_UUID_TEMPSPIKE));
-  bleChar = new BLEClientCharacteristic(BLEUuid(CHAR_UUID_TEMPSPIKE));
-  bleCharNotify = new BLEClientCharacteristic(BLEUuid(NOTIFY_UUID_TEMPSPIKE));
+  bleChar = new BLEClientCharacteristicTempSpike(BLEUuid(CHAR_UUID_TEMPSPIKE));
+  bleCharNotify = new BLEClientCharacteristicTempSpike(BLEUuid(NOTIFY_UUID_TEMPSPIKE));
   bleChar->setNotifyCallback(BleSensorGrp::notifyCb);
 
   bleServ->begin();

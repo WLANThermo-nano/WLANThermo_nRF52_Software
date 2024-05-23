@@ -27,6 +27,37 @@ const uint8_t CHAR_UUID_TEMPSPIKE[16] = {0xfb, 0x34, 0x9b, 0x5f, 0x80, 0x00, 0x0
 
 const uint8_t NOTIFY_UUID_TEMPSPIKE[16] = {0xfb, 0x34, 0x9b, 0x5f, 0x80, 0x00, 0x00, 0x80, 0x00, 0x10, 0x00, 0x00, 0x02, 0x29, 0x00, 0x00};
 
+// Fix for TempSpike
+class BLEClientCharacteristicTempSpike : public BLEClientCharacteristic
+{
+public:
+  BLEClientCharacteristicTempSpike(BLEUuid bleuuid) : BLEClientCharacteristic(bleuuid){};
+  bool writeCCCD(uint16_t value) override
+  // diese Funktion ueberschreibt die urspruengliche Funktion in der BLEClientCharacteristic, dazu muss die urspruengliche Funktion um ein "virtual" ergaenzt werden
+  // zusaetzlich muessen die privaten Variablen der BLEClientCharacteristic auf protected umgestellt werden
+  {
+    const uint16_t conn_handle = _service->connHandle();
+
+    ble_gattc_write_params_t param =
+        {
+            .write_op = BLE_GATT_OP_WRITE_REQ,
+            .flags = BLE_GATT_EXEC_WRITE_FLAG_PREPARED_WRITE,
+            .handle = _cccd_handle,
+            .offset = 0,
+            .len = 2,
+            .p_value = (uint8_t *)&value};
+
+    // TODO only Write without response consume a TX buffer
+    BLEConnection *conn = Bluefruit.Connection(conn_handle);
+    VERIFY(conn && conn->getWriteCmdPacket());
+
+    VERIFY_STATUS(sd_ble_gattc_write(conn_handle, &param), false);
+
+    return true;
+  };
+};
+
+
 class BleTemperatureTempSpike : public BleSensorBase
 {
 public:
@@ -39,6 +70,6 @@ private:
   float readTipTemperature(uint8_t *data);
   float readAmbientTemperature(uint8_t *data);
   BLEClientService *bleServ;
-  BLEClientCharacteristic *bleChar;
-  BLEClientCharacteristic *bleCharNotify;
+  BLEClientCharacteristicTempSpike *bleChar;
+  BLEClientCharacteristicTempSpike *bleCharNotify;
 };

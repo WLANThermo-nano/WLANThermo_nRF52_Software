@@ -30,8 +30,8 @@ class BLEClientCharacteristicMeater : public BLEClientCharacteristic
 public:
   BLEClientCharacteristicMeater(BLEUuid bleuuid) : BLEClientCharacteristic(bleuuid){};
   bool writeCCCD(uint16_t value) override
-  // die Funktion ueberschreibt die urspruengliche Funktion in der BLEClientCharacteristic, dazu muss die urspruengliche Funktion um ein "virtrual" ergaenzt werden
-  // zusaetzlich muessen die privaten Variablen auf protected umgestellt werden
+  // diese Funktion ueberschreibt die urspruengliche Funktion in der BLEClientCharacteristic, dazu muss die urspruengliche Funktion um ein "virtual" ergaenzt werden
+  // zusaetzlich muessen die privaten Variablen der BLEClientCharacteristic auf protected umgestellt werden
   {
     const uint16_t conn_handle = _service->connHandle();
 
