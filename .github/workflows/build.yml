@@ -23,8 +23,9 @@ jobs:
           pip install -U adafruit-nrfutil
       - name: Build
         run: |
-          wget https://developer.nordicsemi.com/.pc-tools/nrfutil/x64-linux/nrfutil
-          chmod +x nrfutil
+          mkdir nrfutil
+          wget https://developer.nordicsemi.com/.pc-tools/nrfutil/x64-linux/nrfutil -O nrfutil/nrfutil
+          chmod +x nrfutil/nrfutil
           platformio run
       - uses: actions/upload-artifact@v1
         with:

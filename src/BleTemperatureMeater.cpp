@@ -27,7 +27,7 @@
 BleTemperatureMeater::BleTemperatureMeater(ble_gap_addr_t *peerAddress) : BleSensorBase(peerAddress, MEATER_NUM_OF_TEMERATURES, false)
 {
   bleServ = new BLEClientService(BLEUuid(SERV_UUID_MEATER));
-  bleChar = new BLEClientCharacteristic(BLEUuid(CHAR_UUID_MEATER));
+  bleChar = new BLEClientCharacteristicMeater(BLEUuid(CHAR_UUID_MEATER));
   bleChar->setNotifyCallback(BleSensorGrp::notifyCb);
 
   bleServ->begin();
