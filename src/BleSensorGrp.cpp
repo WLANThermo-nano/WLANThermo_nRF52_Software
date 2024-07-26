@@ -1,4 +1,4 @@
-/*************************************************** 
+/***************************************************
     Copyright (C) 2020  Martin Koerner
 
     This program is free software: you can redistribute it and/or modify
@@ -13,13 +13,15 @@
 
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
-    
+
     HISTORY: Please refer Github History
-    
+
 ****************************************************/
 
 #include "BleSensorGrp.h"
 #include "BleTemperatureMeater.h"
+#include "BleTemperatureMeater2.h"
+#include "BleTemperatureTempSpike.h"
 #include "BleTemperatureWlanthermo.h"
 #include "BleScaleWlanthermo.h"
 #include "BleTemperatureInkbird.h"
@@ -43,6 +45,8 @@
 
 const BLEUuid filterBleUuids[] = {
     BLEUuid(SERV_UUID_MEATER),
+    BLEUuid(SERV_UUID_TEMPSPIKE_ADVERTISER),
+    BLEUuid(SERV_UUID_MEATER2),
     BLEUuid(SERV_UUID_INKBIRD),
     BLEUuid(SERV_UUID_TEMPERATURE_WLANTHERMO)};
 
@@ -152,8 +156,8 @@ String BleSensorGrp::getDevicesJson()
     {
       JsonObject sensorObject = sensorsArray.createNestedObject();
       sensorObject[BLE_JSON_SENSORS_VALUE] = this->sensors[deviceIndex]->getValue(sensorIndex);
-      String unit =  this->sensors[deviceIndex]->getUnit();
-      if(unit.length() > 0u)
+      String unit = this->sensors[deviceIndex]->getUnit();
+      if (unit.length() > 0u)
       {
         sensorObject[BLE_JSON_SENSORS_UNIT] = unit;
       }
@@ -196,6 +200,18 @@ void BleSensorGrp::scanCb(ble_gap_evt_adv_report_t *report)
       BleTemperatureMeater *temp = new BleTemperatureMeater(&report->peer_addr);
       gBleSensorGrp.add(temp);
     }
+    else if (Bluefruit.Scanner.checkReportForUuid(report, SERV_UUID_TEMPSPIKE_ADVERTISER))
+    {
+      Log.notice("TempSpike %s received" CR, (true == report->type.scan_response) ? "scan response" : "advertising");
+      BleTemperatureTempSpike *temp = new BleTemperatureTempSpike(&report->peer_addr);
+      gBleSensorGrp.add(temp);
+    }
+    else if (Bluefruit.Scanner.checkReportForUuid(report, SERV_UUID_MEATER2))
+    {
+      Log.notice("Meater2 %s received" CR, (true == report->type.scan_response) ? "scan response" : "advertising");
+      BleTemperatureMeater2 *temp = new BleTemperatureMeater2(&report->peer_addr);
+      gBleSensorGrp.add(temp);
+    }
     else if (Bluefruit.Scanner.checkReportForUuid(report, SERV_UUID_TEMPERATURE_WLANTHERMO))
     {
       Log.notice("Wlanthermo %s received" CR, (true == report->type.scan_response) ? "scan response" : "advertising");
@@ -222,7 +238,7 @@ void BleSensorGrp::scanCb(ble_gap_evt_adv_report_t *report)
     }
     else if (Bluefruit.Scanner.parseReportByType(report, 0xFFu, (uint8_t *)&beacon, sizeof(BeaconType)) == sizeof(BeaconType))
     {
-      if(BleTemperatureMeatStick::hasMeatStickData(&beacon))
+      if (BleTemperatureMeatStick::hasMeatStickData(&beacon))
       {
         Log.notice("MeatStick %s received" CR, (true == report->type.scan_response) ? "scan response" : "advertising");
         BleTemperatureMeatStick *temp = new BleTemperatureMeatStick(&report->peer_addr, &beacon);
