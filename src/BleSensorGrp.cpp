@@ -27,6 +27,7 @@
 #include "BleTemperatureInkbird.h"
 #include "BleTemperatureMeatStick.h"
 #include "BleTemperatureTY530.h"
+#include "BleTemperatureG32.h"
 #include <ArduinoJson.h>
 #include <ArduinoLog.h>
 
@@ -48,6 +49,7 @@ const BLEUuid filterBleUuids[] = {
     BLEUuid(SERV_UUID_TEMPSPIKE_ADVERTISER),
     BLEUuid(SERV_UUID_MEATER2),
     BLEUuid(SERV_UUID_INKBIRD),
+    BLEUuid(SERV_UUID_G32),
     BLEUuid(SERV_UUID_TEMPERATURE_WLANTHERMO)};
 
 BleSensorBase *BleSensorGrp::sensors[MAX_TEMPERATURES];
@@ -234,6 +236,12 @@ void BleSensorGrp::scanCb(ble_gap_evt_adv_report_t *report)
     {
       Log.notice("TY530 %s received" CR, (true == report->type.scan_response) ? "scan response" : "advertising");
       BleTemperatureTY530 *temp = new BleTemperatureTY530(&report->peer_addr);
+      gBleSensorGrp.add(temp);
+    }
+    else if (Bluefruit.Scanner.checkReportForUuid(report, SERV_UUID_G32))
+    {
+      Log.notice("G32 %s received" CR, (true == report->type.scan_response) ? "scan response" : "advertising");
+      BleTemperatureG32 *temp = new BleTemperatureG32(&report->peer_addr);
       gBleSensorGrp.add(temp);
     }
     else if (Bluefruit.Scanner.parseReportByType(report, 0xFFu, (uint8_t *)&beacon, sizeof(BeaconType)) == sizeof(BeaconType))
