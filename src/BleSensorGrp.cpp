@@ -75,6 +75,7 @@ void BleSensorGrp::init()
   Bluefruit.Central.setConnectCallback(BleSensorGrp::connectCb);
 
   Bluefruit.Scanner.setRxCallback(BleSensorGrp::scanCb);
+  ;Bluefruit.Scanner.setRxCallback(BleSensorGrp::scanTest);
   Bluefruit.Scanner.setInterval(80u, 80u); // in unit of 0.625 ms
   //Bluefruit.Scanner.filterUuid((BLEUuid *)filterBleUuids, sizeof(filterBleUuids) / sizeof(BLEUuid));
   Bluefruit.Scanner.useActiveScan(true);
@@ -187,6 +188,37 @@ uint8_t BleSensorGrp::count()
 BleSensorBase *BleSensorGrp::operator[](int index)
 {
   return (((uint16_t)index) < MAX_TEMPERATURES) ? sensors[index] : NULL;
+}
+
+void BleSensorGrp::scanTest(ble_gap_evt_adv_report_t *report)
+{
+  
+  /* Display the timestamp and device address */
+  if (report->type.scan_response)
+  {
+    Serial.printf("[SR%10d] Packet received from ", millis());
+  }
+  else
+  {
+    Serial.printf("[ADV%9d] Packet received from ", millis());
+  }
+  // MAC is in little endian --> print reverse
+  Serial.printBufferReverse(report->peer_addr.addr, 6, ':');
+  Serial.print("\n");
+  if (Bluefruit.Scanner.checkReportForUuid(report, SERV_UUID_G32))
+    Serial.println("G32");
+  
+  /* Raw buffer contents */
+  Serial.printf("%14s %d bytes\n", "PAYLOAD", report->data.len);
+  if (report->data.len)
+  {
+    Serial.printf("%15s", " ");
+    Serial.printBuffer(report->data.p_data, report->data.len, '-');
+    Serial.println();
+  }
+
+
+  Bluefruit.Scanner.resume();
 }
 
 void BleSensorGrp::scanCb(ble_gap_evt_adv_report_t *report)

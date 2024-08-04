@@ -21,7 +21,7 @@
 
 #include "BleSensorBase.h"
 
-//service_uuid: 'dc0f41ea-b6ae-46a8-a19e-1a3bf4342bcb'
+//service_uuid: 'dc0f41ea-b6ae-46a8-a19e-1a3bf4342bcb' dc0f41eab6ae46a8a19e1a3bf4342bcb
 //charact_uuid: 'dc0f41e2-b6ae-46a8-a19e-1a3bf4342bcb'
 
 const uint8_t SERV_UUID_G32[16] = {0xcb, 0x2b, 0x34, 0xf4, 0x3b, 0x1a, 0x9e, 0xa1, 0xa8, 0x46, 0xae, 0xb6, 0xea, 0x41, 0x0f, 0xdc};

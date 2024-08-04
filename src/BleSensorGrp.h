@@ -42,6 +42,7 @@ public:
 
 private:
   static void scanCb(ble_gap_evt_adv_report_t *report);
+  static void scanTest(ble_gap_evt_adv_report_t *report);
   static void connectCb(uint16_t conn_handle);
   static void disconnectCb(uint16_t conn_handle, uint8_t reason);
 
