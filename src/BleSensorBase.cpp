@@ -19,6 +19,7 @@
 ****************************************************/
 
 #include "BleSensorBase.h"
+#include <ArduinoLog.h>
 
 #define LOWEST_VALUE -31
 #define HIGHEST_VALUE 999
@@ -92,6 +93,16 @@ void BleSensorBase::update()
   }
 
   lastSeen++;
+}
+
+void BleSensorBase::logRAW(uint8_t *data, uint16_t len)
+{
+  Log.verbose("Raw data: ");
+
+  for (uint8_t i = 0u; i < len; i++)
+    Log.verbose("%x ", data[i]);
+
+  Log.verbose(CR);
 }
 
 void BleSensorBase::advReceived(uint8_t *advData, uint8_t advDataLength)

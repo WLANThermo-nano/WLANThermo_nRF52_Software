@@ -67,6 +67,7 @@ public:
 private:
   float readTipTemperature(uint8_t *data);
   float readAmbientTemperature(uint8_t *data);
+  uint8_t indicateDuoChannel(uint8_t *data);
   BLEClientService *bleServ;
   BLEClientCharacteristicTempSpike *bleChar;
 };

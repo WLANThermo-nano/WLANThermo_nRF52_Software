@@ -134,12 +134,7 @@ void BleTemperatureMeater2::notify(BLEClientCharacteristic *chr, uint8_t *data, 
   currentValue[5] = readAmbientTemperature(data);
   Log.notice("Ambient has value %F" CR, currentValue[5]);
 
-  Log.verbose("Raw data: ");
-
-  for (uint8_t i = 0u; i < len; i++)
-    Log.verbose("%x ", data[i]);
-
-  Log.verbose(CR);
+  logRAW(data, len);
 }
 
 void BleTemperatureMeater2::disconnect(uint16_t conn_handle, uint8_t reason)
