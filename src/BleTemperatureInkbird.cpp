@@ -178,12 +178,7 @@ void BleTemperatureInkbird::notify(BLEClientCharacteristic *chr, uint8_t *data, 
     probeId++;
   }
 
-  Log.verbose("Raw data: ");
-
-  for (uint8_t i = 0u; i < len; i++)
-    Log.verbose("%X ", data[i]);
-
-  Log.verbose(CR);
+  logRAW(data, len);
 }
 
 boolean BleTemperatureInkbird::writeSettings(const uint8_t *data, uint32_t length)

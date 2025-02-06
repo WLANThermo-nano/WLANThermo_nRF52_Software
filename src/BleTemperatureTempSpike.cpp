@@ -22,7 +22,11 @@
 #include "BleTemperatureTempSpike.h"
 #include <ArduinoLog.h>
 
-#define TEMPSPIKE_NUM_OF_TEMPERATURES 2u
+#define TEMPSPIKE_NUM_OF_TEMPERATURES 4u  // Duo
+#define DUOCHANNEL 0x01
+#define SENDDATA 0x10
+#define SENDSTATUS 0x17
+#define PROBEINSERT 0x01
 
 BleTemperatureTempSpike::BleTemperatureTempSpike(ble_gap_addr_t *peerAddress) : BleSensorBase(peerAddress, TEMPSPIKE_NUM_OF_TEMPERATURES, false)
 {
@@ -119,20 +123,42 @@ float BleTemperatureTempSpike::readAmbientTemperature(uint8_t *data)
 
 void BleTemperatureTempSpike::notify(BLEClientCharacteristic *chr, uint8_t *data, uint16_t len)
 {
-  currentValue[0] = readTipTemperature(data);
-  currentValue[1] = readAmbientTemperature(data);
+
   this->lastSeen = 0u;
+  logRAW(data, len);
+
+  if (data[0] == SENDDATA)
+  {
+    if (data[1] == DUOCHANNEL)
+    {
+      currentValue[2] = readTipTemperature(data);
+      currentValue[3] = readAmbientTemperature(data);
+    }
+    else
+    {
+      currentValue[0] = readTipTemperature(data);
+      currentValue[1] = readAmbientTemperature(data);
+    }
+  } else if (data[0] == SENDSTATUS && data[2] == PROBEINSERT) 
+  {
+  if (data[1] == DUOCHANNEL)
+  {
+    currentValue[2] = INACTIVEVALUE;
+    currentValue[3] = INACTIVEVALUE;
+  } else
+  {
+    currentValue[0] = INACTIVEVALUE;
+    currentValue[1] = INACTIVEVALUE;
+  }
+  }
 
   Log.notice("----------- TempSpike data -----------" CR);
-  Log.notice("Tip temperature: %F" CR, currentValue[0]);
-  Log.notice("Ambient temperature: %F" CR, currentValue[1]);
+  Log.notice("Tip 1 temperature: %F" CR, currentValue[0]);
+  Log.notice("Ambient 1 temperature: %F" CR, currentValue[1]);
+  Log.notice("Tip 2 temperature: %F" CR, currentValue[2]);
+  Log.notice("Ambient 2 temperature: %F" CR, currentValue[3]);
 
-  Log.verbose("Raw data: ");
-
-  for (uint8_t i = 0u; i < len; i++)
-    Log.verbose("%x ", data[i]);
-
-  Log.verbose(CR);
+  
 }
 
 void BleTemperatureTempSpike::disconnect(uint16_t conn_handle, uint8_t reason)

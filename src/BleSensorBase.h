@@ -86,6 +86,7 @@ protected:
   String name;
   String unit;
   int8_t rssi;
+  void logRAW(uint8_t *data, uint16_t len);
 
 private:
   static uint8_t globalIndexTracker;

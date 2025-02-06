@@ -99,12 +99,7 @@ void BleTemperatureWlanthermo::notify(BLEClientCharacteristic *chr, uint8_t *dat
   Log.notice("Temperature 0: %F" CR, currentValue[0]);
   Log.notice("Temperature 1: %F" CR, currentValue[1]);
 
-  Log.verbose("Raw data: ");
-
-  for (uint8_t i = 0u; i < len; i++)
-    Log.verbose("%X ", data[i]);
-
-  Log.verbose(CR);
+  logRAW(data, len);
 
   BLEConnection *bleConnection = Bluefruit.Connection(chr->connHandle());
 
