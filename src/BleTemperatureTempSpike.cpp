@@ -129,7 +129,7 @@ void BleTemperatureTempSpike::notify(BLEClientCharacteristic *chr, uint8_t *data
 
   if (data[0] == SENDDATA)
   {
-    if (data[1] == DUOCHANNEL)
+    if (data[1] == DUOCHANNEL)  // Send data
     {
       currentValue[2] = readTipTemperature(data);
       currentValue[3] = readAmbientTemperature(data);
@@ -139,7 +139,7 @@ void BleTemperatureTempSpike::notify(BLEClientCharacteristic *chr, uint8_t *data
       currentValue[0] = readTipTemperature(data);
       currentValue[1] = readAmbientTemperature(data);
     }
-  } else if (data[0] == SENDSTATUS && data[2] == PROBEINSERT) 
+  } else // if (data[0] == SENDSTATUS && data[2] == PROBEINSERT) // Insert box
   {
   if (data[1] == DUOCHANNEL)
   {

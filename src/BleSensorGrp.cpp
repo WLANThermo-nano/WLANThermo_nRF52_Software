@@ -21,6 +21,7 @@
 #include "BleSensorGrp.h"
 #include "BleTemperatureMeater.h"
 #include "BleTemperatureMeater2.h"
+#include "BleTemperatureMeater2plus.h"
 #include "BleTemperatureTempSpike.h"
 #include "BleTemperatureWlanthermo.h"
 #include "BleScaleWlanthermo.h"
@@ -210,6 +211,12 @@ void BleSensorGrp::scanCb(ble_gap_evt_adv_report_t *report)
     {
       Log.notice("Meater2 %s received" CR, (true == report->type.scan_response) ? "scan response" : "advertising");
       BleTemperatureMeater2 *temp = new BleTemperatureMeater2(&report->peer_addr);
+      gBleSensorGrp.add(temp);
+    }
+    else if (Bluefruit.Scanner.checkReportForUuid(report, SERV_UUID_MEATER2PLUS))
+    {
+      Log.notice("Meater2plus %s received" CR, (true == report->type.scan_response) ? "scan response" : "advertising");
+      BleTemperatureMeater2plus *temp = new BleTemperatureMeater2plus(&report->peer_addr);
       gBleSensorGrp.add(temp);
     }
     else if (Bluefruit.Scanner.checkReportForUuid(report, SERV_UUID_TEMPERATURE_WLANTHERMO))
