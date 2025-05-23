@@ -19,15 +19,15 @@
 ****************************************************/
 
 #include "BleSensorGrp.h"
-#include "BleTemperatureMeater2.h"
+#include "BleTemperatureMeater2plus.h"
 #include <ArduinoLog.h>
 
-#define MEATER2_NUM_OF_TEMERATURES 6u
+#define MEATER2PLUS_NUM_OF_TEMPERATURES 6u
 
-BleTemperatureMeater2::BleTemperatureMeater2(ble_gap_addr_t *peerAddress) : BleSensorBase(peerAddress, MEATER2_NUM_OF_TEMERATURES, false)
+BleTemperatureMeater2plus::BleTemperatureMeater2plus(ble_gap_addr_t *peerAddress) : BleSensorBase(peerAddress, MEATER2PLUS_NUM_OF_TEMPERATURES, false)
 {
-  bleServ = new BLEClientService(BLEUuid(SERV_UUID_MEATER2));
-  bleChar = new BLEClientCharacteristic(BLEUuid(CHAR_UUID_MEATER2));
+  bleServ = new BLEClientService(BLEUuid(SERV_UUID_MEATER2PLUS));
+  bleChar = new BLEClientCharacteristic(BLEUuid(CHAR_UUID_MEATER2PLUS));
   bleChar->setNotifyCallback(BleSensorGrp::notifyCb);
 
   bleServ->begin();
@@ -36,7 +36,7 @@ BleTemperatureMeater2::BleTemperatureMeater2(ble_gap_addr_t *peerAddress) : BleS
   Bluefruit.Central.connect(peerAddress);
 }
 
-void BleTemperatureMeater2::connect(uint16_t bleConnHdl)
+void BleTemperatureMeater2plus::connect(uint16_t bleConnHdl)
 {
   char buffer[30] = {0};
 
@@ -49,7 +49,7 @@ void BleTemperatureMeater2::connect(uint16_t bleConnHdl)
     if (bleConnection->getPeerName(buffer, sizeof(buffer)))
     {
       name = buffer;
-      //name = "MEATER2";
+      //name = "MEATER2+"
     }
   }
 
@@ -60,7 +60,7 @@ void BleTemperatureMeater2::connect(uint16_t bleConnHdl)
     return;
   }
 
-  Log.notice("Discovering Meater2 service ... ");
+  Log.notice("Discovering Meater2plus service ... ");
 
   // Check for service
   if (!bleServ->discover(bleConnHdl))
@@ -73,7 +73,7 @@ void BleTemperatureMeater2::connect(uint16_t bleConnHdl)
   Log.notice("success" CR);
 
   // Check characteristic
-  Log.notice("Discovering Meater2 characteristic ... ");
+  Log.notice("Discovering Meater2plus characteristic ... ");
   if (!bleChar->discover())
   {
     Log.notice("failed!" CR);
@@ -84,7 +84,7 @@ void BleTemperatureMeater2::connect(uint16_t bleConnHdl)
   Log.notice("success" CR);
 
   // Enable notification
-  Log.notice("Enabling Meater2 notification ... ");
+  Log.notice("Enabling Meater2plus notification ... ");
   if (!bleChar->enableNotify())
   {
     Log.notice("failed!" CR);
@@ -97,7 +97,7 @@ void BleTemperatureMeater2::connect(uint16_t bleConnHdl)
   this->connected = true;
 }
 
-float BleTemperatureMeater2::readAmbientTemperature(uint8_t *data)
+float BleTemperatureMeater2plus::readAmbientTemperature(uint8_t *data)
 {
   uint16_t t = 0;
   float temp = 0;
@@ -111,10 +111,10 @@ float BleTemperatureMeater2::readAmbientTemperature(uint8_t *data)
   return temp;
 }
 
-void BleTemperatureMeater2::notify(BLEClientCharacteristic *chr, uint8_t *data, uint16_t len)
+void BleTemperatureMeater2plus::notify(BLEClientCharacteristic *chr, uint8_t *data, uint16_t len)
 {
   this->lastSeen = 0u;
-  Log.notice("----------- Meater2 data -----------" CR);
+  Log.notice("----------- Meater2plus data -----------" CR);
 
   uint8_t probeId = 0;
   for (uint8_t i = 0u; i <= 8; i = i + 2)
@@ -139,7 +139,7 @@ void BleTemperatureMeater2::notify(BLEClientCharacteristic *chr, uint8_t *data, 
   logRAW(data, len);
 }
 
-void BleTemperatureMeater2::disconnect(uint16_t conn_handle, uint8_t reason)
+void BleTemperatureMeater2plus::disconnect(uint16_t conn_handle, uint8_t reason)
 {
   this->bleConnHdl = INVALID_BLE_CONN_HANDLE;
   this->connected = false;
