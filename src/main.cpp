@@ -77,7 +77,7 @@ void loop()
       if((indexOfEqual > 0) && (command.length() - (indexOfEqual + 1)) > 0)
       {
         String logLevelString = command.substring(indexOfEqual + 1);
-        Log.begin(logLevelString.toInt(), &Serial, false);
+        Log.begin(logLevelString.toInt(), &SERIAL_VAR, false);
       }
     }
   }

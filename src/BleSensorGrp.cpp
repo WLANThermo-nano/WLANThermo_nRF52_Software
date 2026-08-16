@@ -27,7 +27,8 @@
 #include "BleScaleWlanthermo.h"
 #include "BleTemperatureInkbird.h"
 #include "BleTemperatureMeatStick.h"
-#include "BleTemperatureTY530.h"
+//#include "BleTemperatureTY530.h"
+#include "BleTemperatureTyphurSync.h"
 #include <ArduinoJson.h>
 #include <ArduinoLog.h>
 
@@ -49,6 +50,7 @@ const BLEUuid filterBleUuids[] = {
     BLEUuid(SERV_UUID_TEMPSPIKE_ADVERTISER),
     BLEUuid(SERV_UUID_MEATER2),
     BLEUuid(SERV_UUID_INKBIRD),
+    BLEUuid(SERV_UUID_TYPHURSYNC),
     BLEUuid(SERV_UUID_TEMPERATURE_WLANTHERMO)};
 
 BleSensorBase *BleSensorGrp::sensors[MAX_TEMPERATURES];
@@ -63,6 +65,10 @@ BleSensorGrp::BleSensorGrp()
 
 void BleSensorGrp::init()
 {
+  // Typhur sendet 22 Byte pro Notification. Die Standard-MTU von 23
+  // laesst nur 20 Byte Nutzlast zu, der Paketzaehler wuerde fehlen.
+  Bluefruit.configCentralConn(25, 3, 1, 1);
+
   if (Bluefruit.begin(0, BLE_CENTRAL_DEVICE_COUNT) == false)
     Log.fatal("Bluefruit init failed!" CR);
 
@@ -237,10 +243,16 @@ void BleSensorGrp::scanCb(ble_gap_evt_adv_report_t *report)
       BleTemperatureInkbird *temp = new BleTemperatureInkbird(&report->peer_addr);
       gBleSensorGrp.add(temp);
     }
-    else if (Bluefruit.Scanner.checkReportForUuid(report, SERV_UUID_TY530))
+    /*else if (Bluefruit.Scanner.checkReportForUuid(report, SERV_UUID_TY530))
     {
       Log.notice("TY530 %s received" CR, (true == report->type.scan_response) ? "scan response" : "advertising");
       BleTemperatureTY530 *temp = new BleTemperatureTY530(&report->peer_addr);
+      gBleSensorGrp.add(temp);
+    }*/
+    else if (Bluefruit.Scanner.checkReportForUuid(report, SERV_UUID_TYPHURSYNC))
+    {
+      Log.notice("TYPHURSYNC %s received" CR, (true == report->type.scan_response) ? "scan response" : "advertising");
+      BleTemperatureTyphurSync *temp = new BleTemperatureTyphurSync(&report->peer_addr);
       gBleSensorGrp.add(temp);
     }
     else if (Bluefruit.Scanner.parseReportByType(report, 0xFFu, (uint8_t *)&beacon, sizeof(BeaconType)) == sizeof(BeaconType))
